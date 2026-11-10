@@ -670,9 +670,6 @@
   One station, read at a glance, is what that space is actually for.
 {% endcomment %}
       {% for card in c limit: 1 %}
-        {% unless forloop.first %}
-          <div class="border--h-40 w--full"></div>
-        {% endunless %}
 
         <div class="flex flex--row flex--center-y gap--small">
           <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
@@ -711,6 +708,7 @@
                     
           {% endif %}
         </div>
+        <div class="border--h-40 w--full"></div>
 
         {% if card.e %}
           <span class="label label--small md:label--base label--outline">Unavailable</span>
