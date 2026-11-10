@@ -603,7 +603,8 @@
 {% assign rows_fit = budget | divided_by: row_pitch %}
 {% assign stack_height = rows_fit | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
-    <div class="content w--full h--full"
+    <div class="col gap--small h--full col--start">
+      <div class="grow basis--0 content w--full"
          data-content-limiter="true"
          data-content-max-height="{{ stack_height }}">
 {% comment %}
@@ -716,6 +717,7 @@
         {% endif %}
       {% endfor %}
     </div>
+  </div>
   </div>
   <div class="title_bar">
     {% comment %}

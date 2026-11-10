@@ -627,7 +627,7 @@
           {% if card.s == top_slot %}{% assign has_card = true %}{% break %}{% endif %}
         {% endfor %}
         {% if has_card %}
-        <div class="col col--start gap--small">
+        <div class="col gap--small h--full col--start">
           {% for card in c %}
             {% if card.s == top_slot %}
               <div class="flex flex--row flex--center-y gap--small">
@@ -672,7 +672,7 @@
               {% if card.e %}
                 <span class="label label--small md:label--base label--outline">Unavailable</span>
               {% else %}
-                <div class="content w--full"
+                <div class="grow basis--0 content w--full"
                      data-content-limiter="true"
          data-content-max-height="{{ card_height }}">
                   {% for col in card.k %}
