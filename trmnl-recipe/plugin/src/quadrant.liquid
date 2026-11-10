@@ -647,7 +647,7 @@
         {% endunless %}
 
         <div class="flex flex--row flex--center-y gap--small">
-          <span class="card-name title title--small grow">{{ card.n }}</span>
+          <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
           {% if card.b %}
             {% comment %}
                       Capped, like the full layout. Past a few the bullets
@@ -674,9 +674,9 @@
                 {% endif %}
               {% endif %}
               {% if card.y == "subway" and glyph.size <= 2 %}
-                <span class="label label--small label--filled bullet{% if glyph.size == 2 %} bullet--pair{% endif %}{% if is_express %} bullet--express{% endif %}"><span>{{ glyph }}</span></span>
+                <span class="label label--small md:label--base label--filled bullet{% if glyph.size == 2 %} bullet--pair{% endif %}{% if is_express %} bullet--express{% endif %}"><span>{{ glyph }}</span></span>
               {% else %}
-                <span class="label label--small label--filled type-tag">{{ glyph }}</span>
+                <span class="label label--small md:label--base label--filled type-tag">{{ glyph }}</span>
               {% endif %}
             {% endfor %}
                     </div>
@@ -685,7 +685,7 @@
         </div>
 
         {% if card.e %}
-          <span class="label label--small label--outline">Unavailable</span>
+          <span class="label label--small md:label--base label--outline">Unavailable</span>
         {% else %}
           {% assign total = 0 %}
           {% for col in card.k %}{% assign total = total | plus: col.r.size %}{% endfor %}
@@ -725,7 +725,7 @@
                   {% assign arrow = "›" %}
                 {% endif %}
                 <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small">
-                  <span class="label label--small label--filled {{ bullet_class }}{% if bullet_class == "" %} row-badge{% endif %}">{% if bullet_class != "" %}<span>{{ glyph }}</span>{% else %}{{ r[0] }}{% endif %}</span>
+                  <span class="label label--small md:label--base label--filled {{ bullet_class }}{% if bullet_class == "" %} row-badge{% endif %}">{% if bullet_class != "" %}<span>{{ glyph }}</span>{% else %}{{ r[0] }}{% endif %}</span>
                   <span class="row-dest title title--small grow">{% if arrow != "" %}{{ arrow }}&nbsp;{% endif %}{{ destination }}</span>
                   <span class="row-time value value--xsmall">{{ r[2] }}</span>
                 </div>
