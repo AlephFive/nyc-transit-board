@@ -642,11 +642,7 @@
   rather than trying to claw back pixels from a budget that was never
   going to fit six stations.
 {% endcomment %}
-{% assign max_cards = 3 %}
-{% assign shown_cards = 0 %}
-      {% for card in c %}
-        {% if shown_cards >= max_cards %}{% break %}{% endif %}
-        {% assign shown_cards = shown_cards | plus: 1 %}
+      {% for card in c limit: 3 %}
         {% unless forloop.first %}
           <div class="border--h-40 w--full card-split"></div>
         {% endunless %}

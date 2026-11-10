@@ -637,11 +637,7 @@
 
   One station, read at a glance, is what that space is actually for.
 {% endcomment %}
-{% assign max_cards = 1 %}
-{% assign shown_cards = 0 %}
-      {% for card in c %}
-        {% if shown_cards >= max_cards %}{% break %}{% endif %}
-        {% assign shown_cards = shown_cards | plus: 1 %}
+      {% for card in c limit: 1 %}
         {% unless forloop.first %}
           <div class="border--h-40 w--full card-split"></div>
         {% endunless %}
