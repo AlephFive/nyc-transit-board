@@ -470,7 +470,15 @@
     align-self: stretch;
   }
   .board-root > .layout {
-    flex: 1 1 auto;
+    /* `flex: 1 1 0` rather than `1 1 auto`, and an explicit `height: 0`
+       as the basis. `.content` inside carries the framework's
+       `max-height: 100%` plus our `h--full`, and a percentage height
+       only resolves against a parent with a *definite* height — which a
+       content-sized flex item is not. With `auto` the percentages were
+       inert, which is why `.content` kept sizing to its rows and
+       overflowing the cell rather than being bounded by it. */
+    flex: 1 1 0;
+    height: 0;
     min-height: 0;
     /* The clipped departure times.
        ---------------------------------------------------------------
