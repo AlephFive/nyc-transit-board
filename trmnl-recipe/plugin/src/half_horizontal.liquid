@@ -384,37 +384,33 @@
      (`min-width: auto`), so a long destination pushes a column past its
      track and `.layout`'s `overflow: hidden` clips it against the card's
      border. `min-width: 0` lets the track win. */
-  /* Give the frame a height in PIXELS, like the full layout has.
+  /* Give the frame a height in pixels, as the full layout has.
      ---------------------------------------------------------------
-     This is the asymmetry between the layout that works and the three
-     that do not. On this device the framework sets
+     On every device the framework sets `--half_horizontal-h: 100%`,
+     while `--full-h` is `calc(var(--screen-h) - var(--gap) * 2)`. So
+     `full.liquid`'s layout is a definite pixel height and every
+     percentage beneath it — `.grid`'s `h--full`, `.col`'s
+     `height/min-height/max-height: 100%` — resolves against a real
+     number. `.col` is what bounds `.content`, so that chain is what
+     makes `grow basis--0` cap anything at all.
 
-       --full-h            calc(var(--screen-h) - var(--gap) * 2)   <- px
-       --half_horizontal-h  100%                                    <- %
+     In a mashup the same declaration is `calc(100%)` and the chain is
+     percentages the whole way down. One indefinite link and `.col`'s cap
+     silently becomes "as tall as the rows already are".
 
-     so `full.liquid`'s `.layout { height: calc(var(--full-h)) }` is a
-     definite 460px and every percentage beneath it resolves against a
-     real number. In a mashup the same declaration is `calc(100%)`, and
-     each child's `height: 100%` / `max-height: 100%` is then a
-     percentage of a percentage all the way down to `.col`, which is what
-     bounds `.content`. A chain like that only holds if every link is
-     definite; one indefinite link and `.col`'s cap silently becomes "as
-     tall as the rows already are", which is no cap at all — 85 rows, the
-     right edge clipped, the bar pushed off.
+     The value below is the framework's own `:root` fallback for this
+     view, copied verbatim. It is written in terms of `--screen-h` and
+     `--gap`, so it follows whatever device is rendering — a 2560px frame
+     or a 400px playdate — rather than hardcoding this panel's numbers.
+     `tests/layouts.test.ts` checks it still matches the framework.
 
-     So state it the way the full layout has it: the cell's own pixels,
-     derived from `--screen-h` and `--gap`, less the title bar. The
-     mashup grid is `calc(var(--screen-h) - var(--gap)*2)` tall with rows
-     `1fr 1fr` and a `var(--gap)` between them, so a half cell is
-     `(that - gap) / 2`.
-
-     `.trmnl` is in the selector because the framework's own rule is
-     (0,3,0) and a plainer one loses to it. */
+     `.trmnl` is in the selector because the framework's rule is (0,3,0)
+     and a plainer one loses to it. */
   .trmnl .view--half_horizontal {
-    height: calc((var(--screen-h) - var(--gap) * 2 - var(--gap)) / 2);
+    height: calc((var(--screen-h) - var(--gap) * 2) / 2 - var(--gap) / 2);
   }
   .trmnl .view--half_horizontal .layout {
-    height: calc(calc((var(--screen-h) - var(--gap) * 2 - var(--gap)) / 2) - var(--title-bar-small-height));
+    height: calc(calc((var(--screen-h) - var(--gap) * 2) / 2 - var(--gap) / 2) - var(--title-bar-small-height));
   }
   /* Nothing inside may be wider than the track it sits in. A grid or
      flex child floors at `min-width: auto` — its content's width — so a
@@ -506,7 +502,16 @@
        not a target, and flex was treating it as the latter. A route name
        is the one thing on the row that must survive intact: "M4" still
        reads as the M42, but "M" reads as a different route. */
-    flex-shrink: 0;
+    /* The clock must never be pushed off the row. With `flex-shrink: 0`
+       here and on `.row-time`, the destination was the only element that
+       could give way; once it hit zero the badge kept its full width and
+       shoved the time past the card's right edge, where `overflow:
+       hidden` cut it off. A railroad badge is the wide case —
+       "Hempstead", "Ronkonkoma" — which is why the railroad card clipped
+       while the subway one did not. The badge now yields and clips its
+       own text, which it is already set up to do. */
+    flex-shrink: 1;
+    min-width: 0;
     /* A third of the row. A character count fitted every branch but "City
        Terminal Zone" and took a fixed slice of a split column, where the
        destination has least to spare; a share scales with the space the
@@ -618,14 +623,15 @@
     .title_bar in a mashup = --title-bar-small-height = 32
     .layout padding = var(--gap) = 10, top and bottom
 
-  cell - 32 - 20, floored to whole rows so the cut lands between rows
-  rather than through one.
+  Expressed as a share of the device's height, the way full.liquid does
+  it — that layout is the one proven on hardware, and a proportion
+  follows a 400px panel and a 2560px one alike, where subtracting a
+  fixed gap and title-bar height would not. Floored to whole rows so
+  the cut lands between rows rather than through one.
 {% endcomment %}
 {% assign device_height = trmnl.device.height | default: 480 %}
 {% assign row_pitch = 30 %}
-{% assign cell_h = device_height | minus: 20 | minus: 10 | divided_by: 2 %}
-{% assign budget = cell_h | minus: 32 | minus: 20 %}
-{% assign rows_fit = budget | divided_by: row_pitch %}
+{% assign rows_fit = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign card_height = rows_fit | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     <div class="grid grid--cols-{{ used_columns }} h--full">

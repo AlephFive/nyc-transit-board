@@ -299,7 +299,15 @@ describe("the display rule is identical in every layout", () => {
       // Each badge as wide as its own name: a floor would pad "M42" and
       // "SIM8" to one indistinguishable box.
       assert.match(css, /width:\s*max-content/, `${name}.liquid fixes badge width`);
-      assert.doesNotMatch(css, /min-width/, `${name}.liquid floors badge width`);
+      // `min-width: 0` is the opposite of a floor — it removes the
+      // automatic `min-width: auto` a flex item gets, so the badge can
+      // give way rather than shove the clock off the row. Only a
+      // *positive* floor is the bug this guards against.
+      const floor = /min-width:\s*([^;]+);/.exec(css);
+      assert.ok(
+        !floor || floor[1].trim() === "0",
+        `${name}.liquid floors badge width at ${floor && floor[1].trim()}`
+      );
     }
   });
 
