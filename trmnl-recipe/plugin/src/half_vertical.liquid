@@ -394,110 +394,18 @@
   .board-root {
     display: flex;
     flex-direction: column;
-    /* `.layout` is our own child, not our parent — the built DOM is
-
-         .view--quadrant > .board-root > .layout > .content
-                                       > .title_bar
-
-       and the framework centres `.layout`'s children:
-
-         .layout { display:flex; justify-content:center;
-                   align-items:center; overflow:hidden }
-
-       So the element being centred is `.content`, which is why the
-       quadrant draws its heading floating mid-cell with the rows running
-       off the bottom, and why the rows get no cell width for
-       `flex--between` to push the clock against.
-
-       The framework's own utility fixes it, and must sit on the child of
-       `.layout`:
-
-         .trmnl .layout>.stretch { align-self:stretch; flex:1 1 0% }
-
-       `.content` carries `.stretch` in the markup. Earlier attempts put
-       it on `.board-root` and declared the same properties in CSS here;
-       both were no-ops — the selector cannot match a parent of `.layout`,
-       and a plain `.board-root` rule (0,1,0) loses to the framework's
-       (0,3,0) anyway.
-
-       Full screen is unaffected: `.view--full .layout` sets an explicit
-       width and height. */
-    width: 100%;
-    /* The footer is cut off on the device.
-       ---------------------------------------------------------------
-       `.board-root` sits inside a padded, `overflow: hidden` layout in a
-       mashup cell. `height: 100%` resolves against the padding box while
-       the visible area is the content box, so the column is taller than
-       what is shown and the title bar — last in the column — falls into
-       the clipped strip. `max-height: 100%` with `box-sizing: border-box`
-       keeps it inside what is actually drawn.
-
-       Harmless on a full screen, where `.view--full .layout` has no
-       padding and the two boxes are the same. */
-    box-sizing: border-box;
-    max-height: 100%;
-    /* A flex item defaults to `min-height: auto`, which floors it at its
-       content's height. In a mashup that floor is taller than the cell:
-       `.mashup-cell` is a flex box with `min-height: 0` and
-       `overflow: hidden`, so an overgrown child is silently clipped at the
-       bottom — which is where the footer lives. `height: 100%` alone does
-       not help, because the content floor wins over it.
-
-       It costs the full-screen layout nothing: there the content already
-       fits, so the floor never binds. */
+    height: 100%;
+    /* A flex item floors at its content height by default, and
+       `.mashup-cell` clips. Shipped in 89a19a6 and kept: it is the one
+       box change from this chase that is independently justified. */
     min-height: 0;
   }
-  /* `.layout` is our own child — the built DOM is
-       .view--quadrant > .board-root > .layout > .content
-                                     > .title_bar
-     and the framework centres `.layout`'s children:
-       .layout { display:flex; justify-content:center; align-items:center }
-     so `.content` is floated in the cell rather than filling it. That is
-     the heading sitting mid-quadrant with its rows running off the
-     bottom, and the rows being content-sized is why `flex--between` has
-     no free space to push the clock into.
 
-     Only the cross-axis stretch is wanted. The framework's `.stretch`
-     utility also sets `flex: 1 1 0%`, and a zero basis collapsed
-     `.content` to nothing — the board rendered as an empty card with the
-     title bar at the top. So this sets `align-self` alone, at a
-     specificity that beats the framework's `.layout` rule.
-
-     Full screen is unaffected: `.view--full .layout` sets an explicit
-     width and height, so its child was never floated. */
-  .board-root > .layout > .content,
-  .board-root > .layout > .grid {
-    align-self: stretch;
-  }
   .board-root > .layout {
-    /* `flex: 1 1 0` rather than `1 1 auto`, and an explicit `height: 0`
-       as the basis. `.content` inside carries the framework's
-       `max-height: 100%` plus our `h--full`, and a percentage height
-       only resolves against a parent with a *definite* height — which a
-       content-sized flex item is not. With `auto` the percentages were
-       inert, which is why `.content` kept sizing to its rows and
-       overflowing the cell rather than being bounded by it. */
-    flex: 1 1 0;
-    height: 0;
+    flex: 1 1 auto;
     min-height: 0;
-    /* The clipped departure times.
-       ---------------------------------------------------------------
-       The framework pads the layout inside a mashup cell but not on a
-       full screen:
-
-         .view--half_vertical .layout { padding: var(--gap) }
-         .view--full .layout          { width: ...; height: ... }
-
-       and base `.layout` is `overflow: hidden`. A flex item defaults to
-       `min-width: auto`, so the rows' intrinsic width wins over the
-       padded box, the row runs under the padding, and the right-aligned
-       clock lands in the clipped strip — the one element far enough
-       right to be cut. `min-width: 0` lets the box win instead.
-
-       Full screen is unaffected: `.view--full .layout` has no padding,
-       so there is no strip to be pushed into. */
-    min-width: 0;
   }
+
   .board-root .content {
     /* Same reason: the rows' container must be allowed to be narrower
        than their intrinsic width. */
