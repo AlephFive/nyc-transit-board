@@ -586,6 +586,38 @@
   `--dest-scale`, and the layout and title bar beneath it are already the
   two children the framework expects.
 {% endcomment %}
+{% comment %}
+  The row budget, and why it is explicit.
+
+  `full.liquid` has always rendered correctly and this is how: it computes
+  a pixel budget and passes it as `data-content-max-height`. Removing that
+  attribute from these layouts (5660c6d) made them stop trimming entirely
+  — 85 rows reached one card — because the framework's limiter cannot run
+  here. Its chain is
+
+    load -> scheduleTerminalize() -> rAF -> rAF -> applyContentLimits()
+
+  and TRMNL's renderer "freeze[s] setTimeout, setInterval +
+  requestAnimationFrame before the screenshot", with code scheduled after
+  initial load never running. Two rAF ticks past load is exactly that.
+  The same freeze is why a probe script printed nothing on the panel.
+
+  So the budget has to be computed here, from the frame's own geometry:
+
+    .mashup      = screen - gap*2                  (460 tall)
+    rows 1fr 1fr, gap 10  => half cell = (460-10)/2 = 225
+    .title_bar in a mashup = --title-bar-small-height = 32
+    .layout padding = var(--gap) = 10, top and bottom
+
+  cell - 32 - 20, floored to whole rows so the cut lands between rows
+  rather than through one.
+{% endcomment %}
+{% assign device_height = trmnl.device.height | default: 480 %}
+{% assign row_pitch = 30 %}
+{% assign cell_h = device_height | minus: 20 | minus: 10 | divided_by: 2 %}
+{% assign budget = cell_h | minus: 32 | minus: 20 %}
+{% assign rows_fit = budget | divided_by: row_pitch %}
+{% assign card_height = rows_fit | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     <div class="grid grid--cols-{{ used_columns }} h--full">
       {% for column_index in (0..2) %}
@@ -641,7 +673,8 @@
                 <span class="label label--small md:label--base label--outline">Unavailable</span>
               {% else %}
                 <div class="content w--full"
-                     data-content-limiter="true">
+                     data-content-limiter="true"
+         data-content-max-height="{{ card_height }}">
                   {% for col in card.k %}
                     {% for r in col.r %}
                       {% assign is_express = false %}
