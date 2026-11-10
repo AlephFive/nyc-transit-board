@@ -447,6 +447,28 @@
        fits, so the floor never binds. */
     min-height: 0;
   }
+  /* `.layout` is our own child — the built DOM is
+       .view--quadrant > .board-root > .layout > .content
+                                     > .title_bar
+     and the framework centres `.layout`'s children:
+       .layout { display:flex; justify-content:center; align-items:center }
+     so `.content` is floated in the cell rather than filling it. That is
+     the heading sitting mid-quadrant with its rows running off the
+     bottom, and the rows being content-sized is why `flex--between` has
+     no free space to push the clock into.
+
+     Only the cross-axis stretch is wanted. The framework's `.stretch`
+     utility also sets `flex: 1 1 0%`, and a zero basis collapsed
+     `.content` to nothing — the board rendered as an empty card with the
+     title bar at the top. So this sets `align-self` alone, at a
+     specificity that beats the framework's `.layout` rule.
+
+     Full screen is unaffected: `.view--full .layout` sets an explicit
+     width and height, so its child was never floated. */
+  .board-root > .layout > .content,
+  .board-root > .layout > .grid {
+    align-self: stretch;
+  }
   .board-root > .layout {
     flex: 1 1 auto;
     min-height: 0;
@@ -651,7 +673,7 @@
 {% endcomment %}
 <div class="board-root"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
   <div class="layout">
-    <div class="content stretch w--full h--full"
+    <div class="content w--full h--full"
          data-content-limiter="true"
          data-content-max-height="{{ stack_height }}">
 {% comment %}
