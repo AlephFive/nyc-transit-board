@@ -162,7 +162,15 @@
   /* The name is what identifies a card, so it is never crushed below a
      readable minimum — twelve bullets at Times Square took the heading
      down to "Times" before this. The strip yields first and clips. */
+  /* The station name sits inside `.content` here, not beside it.
+     full.liquid puts the heading row and `.content` side by side in
+     `.col`, so `gap--small` separates them and the name clears its rows
+     by ~2px. These layouts put the heading inside `.content`, which has
+     no gap — rows space themselves with their own margins — so the only
+     separation is the 26px heading's line box, measured at 11px.
+     Tightening that line box closes the difference. */
   .card-name {
+    line-height: 1.15;
     min-width: 7ch;
     /* One line, always. `data-clamp="1"` used to hold this — the framework
        truncates in JS — and removing it to get rid of the ellipsis took
@@ -366,6 +374,32 @@
      Every row carries the inset instead, urgent or not: see `.row-line`.
      An urgent row then differs from an ordinary one in exactly one way,
      which is the colour. */
+  /* A clamped row must not leave a black bar behind.
+     ---------------------------------------------------------------
+     The Content Limiter does not hide the row that straddles its
+     budget — it "clamp[s] the partially fitting direct child to the
+     remaining available space", setting a max-height and cutting the
+     text. On an ordinary row that is invisible. On an urgent one the
+     box keeps `background: #fff` under `invert`, so what remains is a
+     solid black band with no text in it: measured 23px tall on the
+     side-by-side mashup.
+
+     `overflow: hidden` on the row confines the clamp, and collapsing
+     the padding of a clamped row keeps it from reserving height it can
+     no longer fill. The limiter marks the row it clamped with an
+     inline `max-height`, which is what this keys on, so an ordinary
+     unclamped urgent row is untouched. */
+  .row-line[style*="max-height"] {
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .row-line--urgent[style*="max-height"] {
+    background: transparent;
+    filter: none;
+  }
   .row-line--urgent {
     background: #fff;
   }
