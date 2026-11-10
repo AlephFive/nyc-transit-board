@@ -187,17 +187,6 @@
   .card-head {
     margin-bottom: 0.1em;
   }
-  /* The column's own gap only, not an inherited one.
-     `--tn-gap` is a custom property, so setting it on `.col` cascaded
-     into every `gap--small` inside the card — including the gaps
-     between a row's badge, destination and clock — and `0.15em` against
-     a 26px heading is wider than the 7px it replaced. That is why the
-     spacing grew rather than shrank. `row-gap` applies to this flex
-     container alone and inherits nowhere. */
-  .trmnl .layout > .col,
-  .trmnl .layout .grid > .col {
-    row-gap: 2px;
-  }
   .dir-head {
     margin-top: 0.1em;
     margin-bottom: 0.1em;
