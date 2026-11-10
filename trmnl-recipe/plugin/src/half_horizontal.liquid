@@ -632,25 +632,32 @@
   TEMPORARY geometry probe — remove once the mashup layouts are right.
 
   Seven CSS theories have each been reasoned from the stylesheet and each
-  failed on hardware, while the local preview reported success. This makes
-  the device state what it actually measures, so the next change is based
-  on its numbers rather than mine.
+  failed on hardware. This makes the device state what it measures.
+
+  The readout is appended to `.view` rather than left where it is written,
+  because `.layout` is `position: absolute` here and would otherwise be
+  the containing block — the probe would then be pinned to the very box
+  whose size is in question. Two short lines, so it stays readable in a
+  385px frame as well as a 780px one.
 {% endcomment %}
-<div id="probe" style="position:absolute;left:0;bottom:0;z-index:999;background:#fff;color:#000;font:9px/1.1 monospace;padding:1px 2px;max-width:100%;overflow:hidden;white-space:nowrap">probe</div>
 <script>
 (function(){
   function b(el){ if(!el) return "-"; var r=el.getBoundingClientRect();
     return Math.round(r.width)+"x"+Math.round(r.height)+"@"+Math.round(r.left)+","+Math.round(r.top); }
   function run(){
-    var v=document.querySelector("[class*=view--]"),
-        l=v&&v.querySelector(".layout"),
-        t=v&&v.querySelector(".title_bar"),
-        row=document.querySelector(".row-line"),
-        tm=row&&row.querySelector(".row-time");
+    var v=document.querySelector("[class*=view--]");
+    if(!v) return;
+    var l=v.querySelector(".layout"), t=v.querySelector(".title_bar"),
+        row=v.querySelector(".row-line"), tm=row&&row.querySelector(".row-time");
     var p=document.getElementById("probe");
-    if(!p) return;
-    p.textContent="v"+b(v)+" l"+b(l)+" t"+b(t)+" r"+b(row)+" tm"+b(tm)
-      +" lpos:"+(l?getComputedStyle(l).position:"-");
+    if(!p){ p=document.createElement("div"); p.id="probe"; v.appendChild(p); }
+    p.setAttribute("style","position:absolute;left:0;top:0;z-index:999;"
+      +"background:#fff;color:#000;font:9px/1.15 monospace;padding:1px 3px;"
+      +"border:1px solid #000;white-space:pre;pointer-events:none");
+    p.textContent =
+      "V"+b(v)+"  L"+b(l)+" "+(l?getComputedStyle(l).position:"-")+"
+"
+     +"T"+b(t)+"  R"+b(row)+"  C"+b(tm);
   }
   if(document.readyState==="complete") run(); else addEventListener("load",run);
   setTimeout(run,500);
