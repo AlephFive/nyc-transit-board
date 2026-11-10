@@ -627,7 +627,21 @@
     <div class="content w--full h--full"
          data-content-limiter="true"
          data-content-max-height="{{ stack_height }}">
+{% comment %}
+  One card.
+  ---------------------------------------------------------------
+  A quadrant is 385x225. The framework scales no type down for it —
+  `--ui-scale` is `--device-ui-scale * --modifier-scale` and no view or
+  mashup class sets either, and there are no `@container` rules — so the
+  full board's 16px and 20px faces are drawn in a quarter of the area.
+
+  One station, read at a glance, is what that space is actually for.
+{% endcomment %}
+{% assign max_cards = 1 %}
+{% assign shown_cards = 0 %}
       {% for card in c %}
+        {% if shown_cards >= max_cards %}{% break %}{% endif %}
+        {% assign shown_cards = shown_cards | plus: 1 %}
         {% unless forloop.first %}
           <div class="border--h-40 w--full card-split"></div>
         {% endunless %}
@@ -681,7 +695,7 @@
             {% assign shown = 0 %}
             {% for col in card.k %}
               {% for r in col.r %}
-                {% if shown >= 3 %}{% break %}{% endif %}
+                {% if shown >= 4 %}{% break %}{% endif %}
                 {% assign shown = shown | plus: 1 %}
                       {% assign is_express = false %}
                       {% assign glyph = r[0] %}

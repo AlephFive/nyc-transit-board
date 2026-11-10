@@ -626,7 +626,27 @@
     <div class="content w--full h--full"
          data-content-limiter="true"
          data-content-max-height="{{ stack_height }}">
+{% comment %}
+  Three cards, not six.
+  ---------------------------------------------------------------
+  A half cell is 385px wide — the full board's card is 790px. The
+  framework scales nothing down for a mashup: `--ui-scale` is
+  `--device-ui-scale * --modifier-scale`, and no view or mashup class
+  touches either (only the user's own `screen--scale-*` setting does),
+  and the stylesheet carries no `@container` rules. So the same 16px and
+  20px faces are drawn in half the width.
+
+  At that width a row cannot hold a badge, a destination and a clock, and
+  the clock — last and right-aligned — is what gets pushed out. Fewer
+  cards is the fix that gives each row the height and the rows the room,
+  rather than trying to claw back pixels from a budget that was never
+  going to fit six stations.
+{% endcomment %}
+{% assign max_cards = 3 %}
+{% assign shown_cards = 0 %}
       {% for card in c %}
+        {% if shown_cards >= max_cards %}{% break %}{% endif %}
+        {% assign shown_cards = shown_cards | plus: 1 %}
         {% unless forloop.first %}
           <div class="border--h-40 w--full card-split"></div>
         {% endunless %}
@@ -680,7 +700,7 @@
             {% assign shown = 0 %}
             {% for col in card.k %}
               {% for r in col.r %}
-                {% if shown >= 4 %}{% break %}{% endif %}
+                {% if shown >= 5 %}{% break %}{% endif %}
                 {% assign shown = shown | plus: 1 %}
                       {% assign is_express = false %}
                       {% assign glyph = r[0] %}
