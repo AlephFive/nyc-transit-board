@@ -379,75 +379,17 @@
   .row-line--urgent {
     background: #fff;
   }
-  /* The board's own wrapper, deliberately not a `.view`.
-     
-     trmnlp already wraps this markup in `<div class="view view--full">`,
-     and nesting a second `.view` inside it is why the footer fell off the
-     panel: `.view` is a column flex whose height comes from
-     `.view--full`, the inner one had no such class, so it grew to fit its
-     content and pushed the `.title_bar` below the screen.
-     
-     It cannot borrow `.flex--col` either — that sets `align-items:
-     center`, which collapses the layout's width and renders a blank
-     board. Its own rule, then: fill the height it is given, stack the
-     layout above the title bar, and let the layout take what is left. */
-  .board-root {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    /* A flex item floors at its content height by default, and
-       `.mashup-cell` clips. Shipped in 89a19a6 and kept: it is the one
-       box change from this chase that is independently justified. */
-    min-height: 0;
-  }
 
-  /* The footer: full width of the board, pinned to the bottom.
-     ---------------------------------------------------------------
-     The framework gives `.title_bar` a height, `padding: 0 var(--gap)`
-     and `align-items`, but no width and no flex sizing. As the last
-     child of `.board-root`'s column flex it should stretch, and on the
-     full screen it does — there the board's width is settled by
-     `.view--full .layout`. In a mashup cell nothing settles it, so the
-     bar sizes to its content and runs a few pixels past the right edge.
-
-     `width: 100%` with `min-width: 0` holds it to the board's width
-     (box-sizing is border-box throughout `.trmnl`, so the 10px padding
-     is inside that). `flex-shrink: 0` and `margin-top: auto` keep it at
-     its full height and at the bottom of the column, whatever the rows
-     above do. */
-  .board-root > .title_bar {
-    width: 100%;
-    min-width: 0;
-    flex-shrink: 0;
-    margin-top: auto;
-  }
   /* Grid and flex children floor at their content's width
-     (`min-width: auto`), so a long destination or a wide badge pushes a
-     column past its track and, with `.layout`'s `overflow: hidden`,
-     straight under the card's right border — which is why the rows reach
-     the frame with no inset while the grid itself is correctly padded.
-     `min-width: 0` lets the track win instead. */
-  .board-root .col,
-  .board-root .content {
+     (`min-width: auto`), so a long destination pushes a column past its
+     track and `.layout`'s `overflow: hidden` clips it against the card's
+     border. `min-width: 0` lets the track win. */
+  .layout .col,
+  .layout .content {
     min-width: 0;
-  }
-  .board-root > .layout {
-    /* `1 1 0` rather than `1 1 auto`. With an `auto` basis the layout's
-       starting size is its content's height, and the content here is a
-       grid carrying `h--full` — so the layout claims the whole cell and
-       there is no free space left in the column for the title bar, which
-       then renders past the bottom edge and disappears. A zero basis
-       makes the two siblings share the column: the bar takes its fixed
-       height, the layout takes the rest. */
-    flex: 1 1 0;
-    min-height: 0;
   }
 
-  .board-root .content {
-    /* Same reason: the rows' container must be allowed to be narrower
-       than their intrinsic width. */
-    min-width: 0;
-  }
+
   /* The empty state is a line of its own, not a row.
      
      It was a `<span>` carrying `.row-dest` and `w--full`, which centred
@@ -588,7 +530,7 @@
   `.content` as a sibling, so it comes off the limiter's budget.
 
   It was `times: 30 | divided_by: 100` of the *screen*, picked by eye
-  while `.board-root` was overflowing its cell rather than sized by it.
+  while the board was overflowing its cell rather than sized by it.
 {% endcomment %}
 {% assign outer_gap = 20 %}
 {% assign inner_gap = 10 %}
@@ -641,8 +583,7 @@
   `--dest-scale`, and the layout and title bar beneath it are already the
   two children the framework expects.
 {% endcomment %}
-<div class="board-root"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
-  <div class="layout">
+<div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     <div class="grid grid--cols-{{ used_columns }} h--full">
       {% for column_index in (0..2) %}
         {% assign top_slot = column_index | times: 2 | plus: 1 %}
@@ -808,4 +749,4 @@
       <span class="instance">Example</span>
     {% endif %}
   </div>
-</div>
+
