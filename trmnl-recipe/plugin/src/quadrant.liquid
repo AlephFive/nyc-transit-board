@@ -384,42 +384,6 @@
      (`min-width: auto`), so a long destination pushes a column past its
      track and `.layout`'s `overflow: hidden` clips it against the card's
      border. `min-width: 0` lets the track win. */
-  /* Size everything from the frame itself.
-     ---------------------------------------------------------------
-     `.view--quadrant` is the frame: a column flex, `width` and
-     `height: 100% !important` of its mashup cell, which is a grid track
-     of `calc(var(--screen-h) - var(--gap)*2)`. Both dimensions are real
-     pixels, so anything inside can be measured against it directly.
-
-     Rather than correct the framework's own sizing rule by rule — which
-     has repeatedly meant losing a specificity contest or depending on
-     `:has()`, a selector `tests/layouts.test.ts` explains we cannot
-     rely on here — pin the two children to the frame:
-
-       the title bar sits on the bottom edge at its own height,
-       the layout fills the frame and stops short of the bar.
-
-     `position: absolute` takes both out of flow, so no framework height
-     on `.layout` can push the bar off the panel, and the bar cannot be
-     squeezed to nothing by the rows above it. `inset` ties every edge
-     to the frame, which is what makes the width right too: the layout
-     can no longer be wider than what it sits in. */
-  .trmnl .view--quadrant {
-    position: relative;
-  }
-  .trmnl .view--quadrant > .layout {
-    position: absolute;
-    inset: 0 0 var(--title-bar-small-height) 0;
-    height: auto;
-    width: auto;
-    min-width: 0;
-    min-height: 0;
-  }
-  .trmnl .view--quadrant > .title_bar {
-    position: absolute;
-    inset: auto 0 0 0;
-    width: auto;
-  }
   /* Nothing inside may be wider than the track it sits in. A grid or
      flex child floors at `min-width: auto` — its content's width — so a
      long destination or a wide badge pushes the column past its track
@@ -561,29 +525,6 @@
   departures fill the column and the rest never appears.
 {% endcomment %}
 
-{% assign device_height = trmnl.device.height | default: 480 %}
-{% comment %}
-  A whole number of rows, not a percentage — see full.liquid. A tuned
-  percentage stops dividing by the row height the moment the type
-  changes, and the Content Limiter then renders the remainder as a
-  part-row: the last entry on a card comes out smaller than the rest.
-{% endcomment %}
-{% assign row_pitch = 30 %}
-{% comment %}
-  The content budget, derived from the cell rather than tuned by eye.
-
-  `.mashup` is the screen less `--gap` on each side, and its rows are
-  `1fr 1fr` with another `--gap` between them. So a quadrant is
-  `(device_height - 20 - 10) / 2`. The footer is a framework
-  `.title_bar`, measured at 32px in a browser (the mashup takes
-  `--title-bar-small-height`, not the 40px one), and it sits outside
-  `.content` as a sibling, so it comes off the limiter's budget.
-
-  It was `times: 55 | divided_by: 100` of the *screen* — more than double
-  the cell it actually gets, which is why it clipped.
-{% endcomment %}
-{% assign outer_gap = 20 %}
-{% assign inner_gap = 10 %}
 {% comment %}
   32px for the title bar, plus the 20px of vertical padding the framework
   puts on `.layout` inside a mashup cell (`padding: var(--gap)`, top and
@@ -591,12 +532,6 @@
   what the cell actually draws and pushed the footer into the clipped
   strip.
 {% endcomment %}
-{% assign footer_height = 52 %}
-{% assign grid_height = device_height | minus: outer_gap %}
-{% assign cell_height = grid_height | minus: inner_gap | divided_by: 2 %}
-{% assign content_budget = cell_height | minus: footer_height %}
-{% assign stack_rows = content_budget | divided_by: row_pitch %}
-{% assign stack_height = stack_rows | times: row_pitch %}
 
 {% comment %}
   Not a `.view` — trmnlp already wraps this markup in
@@ -614,8 +549,7 @@
 {% endcomment %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     <div class="content w--full h--full"
-         data-content-limiter="true"
-         data-content-max-height="{{ stack_height }}">
+         data-content-limiter="true">
 {% comment %}
   One card.
   ---------------------------------------------------------------
