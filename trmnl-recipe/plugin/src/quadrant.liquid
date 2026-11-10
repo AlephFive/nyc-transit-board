@@ -187,8 +187,16 @@
   .card-head {
     margin-bottom: 0.1em;
   }
-  .trmnl .layout .col {
-    --tn-gap: 0.15em;
+  /* The column's own gap only, not an inherited one.
+     `--tn-gap` is a custom property, so setting it on `.col` cascaded
+     into every `gap--small` inside the card — including the gaps
+     between a row's badge, destination and clock — and `0.15em` against
+     a 26px heading is wider than the 7px it replaced. That is why the
+     spacing grew rather than shrank. `row-gap` applies to this flex
+     container alone and inherits nowhere. */
+  .trmnl .layout > .col,
+  .trmnl .layout .grid > .col {
+    row-gap: 2px;
   }
   .dir-head {
     margin-top: 0.1em;
@@ -541,13 +549,18 @@
        "Hempstead", "Ronkonkoma" — which is why the railroad card clipped
        while the subway one did not. The badge now yields and clips its
        own text, which it is already set up to do. */
-    flex-shrink: 1;
-    min-width: 0;
+    /* The badge never shrinks. A route name is the row's identity —
+       "Q103" truncated to "Q10" names a bus that does not exist, while a
+       destination cut mid-word still reads. An earlier version let the
+       badge give way so the clock could not be pushed off the row; the
+       clock is protected by the destination yielding first instead,
+       which is what `.row-dest`'s `min-width: 0` is for. */
+    flex-shrink: 0;
     /* A third of the row. A character count fitted every branch but "City
        Terminal Zone" and took a fixed slice of a split column, where the
        destination has least to spare; a share scales with the space the
        card actually has. */
-    max-width: 33%;
+    max-width: 50%;
     /* A railroad, bus or ferry badge sits in the same column as a subway
        bullet and must read as the same kind of mark, at the same size.
        The framework's `.label` padding made it visibly taller, so the box
