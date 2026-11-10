@@ -401,6 +401,26 @@
     min-height: 0;
   }
 
+  /* The footer: full width of the board, pinned to the bottom.
+     ---------------------------------------------------------------
+     The framework gives `.title_bar` a height, `padding: 0 var(--gap)`
+     and `align-items`, but no width and no flex sizing. As the last
+     child of `.board-root`'s column flex it should stretch, and on the
+     full screen it does — there the board's width is settled by
+     `.view--full .layout`. In a mashup cell nothing settles it, so the
+     bar sizes to its content and runs a few pixels past the right edge.
+
+     `width: 100%` with `min-width: 0` holds it to the board's width
+     (box-sizing is border-box throughout `.trmnl`, so the 10px padding
+     is inside that). `flex-shrink: 0` and `margin-top: auto` keep it at
+     its full height and at the bottom of the column, whatever the rows
+     above do. */
+  .board-root > .title_bar {
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+    margin-top: auto;
+  }
   .board-root > .layout {
     flex: 1 1 auto;
     min-height: 0;
