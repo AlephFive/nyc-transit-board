@@ -162,6 +162,16 @@
   /* The name is what identifies a card, so it is never crushed below a
      readable minimum — twelve bullets at Times Square took the heading
      down to "Times" before this. The strip yields first and clips. */
+  /* The rule between stacked cards. The framework draws it with a
+     `::before` on a zero-height box, so without a margin the next card's
+     heading sits flush against it and reads as part of the card above.
+     Asymmetric on purpose: more space above the rule than below, so the
+     gap belongs to the card that is ending rather than splitting the
+     difference and detaching the heading from its own rows. */
+  .card-split {
+    margin-top: 0.45em;
+    margin-bottom: 0.3em;
+  }
   .card-name {
     min-width: 7ch;
     /* One line, always. `data-clamp="1"` used to hold this — the framework
@@ -535,20 +545,23 @@
 {% endcomment %}
 {% assign row_pitch = 30 %}
 {% comment %}
-  The content budget, derived rather than tuned.
+  The content budget, derived from the cell rather than tuned by eye.
 
-  This layout owns a full-height cell (the panel split left/right), so the
-  rows get the screen height less the footer. That footer is a framework
-  `.title_bar` at `40px * --ui-scale`, and every 800x480 device sets
-  `--ui-scale: 1`; `--gap` is 10px, so the chrome costs 50px.
+  `.mashup` is the screen less `--gap` on each side, so the grid is
+  `device_height - 20`. A side-by-side cell spans both grid rows, so it is
+  that whole height. The footer is a framework `.title_bar`, `40px *
+  --ui-scale`, and `--ui-scale` is 1 on every 800x480 device; it sits
+  outside `.content` as a sibling, so its height has to come off the
+  limiter's budget or it is squeezed to nothing.
 
-  It was `times: 80 | divided_by: 100`, a percentage picked by eye while
-  `.board-root` was overflowing its cell. With the overflow fixed (see
-  `min-height` above) that 80% only reserved space nothing used: ~80px of
-  the column sat empty while the footer was still clipped.
+  Two earlier versions were wrong in different directions: `times: 80 |
+  divided_by: 100` reserved ~80px nothing used, and subtracting 50 from
+  the *screen* overshot by the 20px of outer gap, which ate the footer.
 {% endcomment %}
-{% assign chrome_height = 50 %}
-{% assign content_budget = device_height | minus: chrome_height %}
+{% assign outer_gap = 20 %}
+{% assign footer_height = 40 %}
+{% assign cell_height = device_height | minus: outer_gap %}
+{% assign content_budget = cell_height | minus: footer_height %}
 {% assign stack_rows = content_budget | divided_by: row_pitch %}
 {% assign stack_height = stack_rows | times: row_pitch %}
 
@@ -573,7 +586,7 @@
          data-content-max-height="{{ stack_height }}">
       {% for card in c %}
         {% unless forloop.first %}
-          <div class="border--h-40 w--full"></div>
+          <div class="border--h-40 w--full card-split"></div>
         {% endunless %}
 
         <div class="flex flex--row flex--center-y gap--small">
@@ -654,7 +667,7 @@
                 {% elsif r[4] == -1 %}
                   {% assign arrow = "›" %}
                 {% endif %}
-                <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small">
+                <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small w--full">
                   <span class="label label--small label--filled {{ bullet_class }}{% if bullet_class == "" %} row-badge{% endif %}">{% if bullet_class != "" %}<span>{{ glyph }}</span>{% else %}{{ r[0] }}{% endif %}</span>
                   <span class="row-dest title title--small grow">{% if arrow != "" %}{{ arrow }}&nbsp;{% endif %}{{ destination }}</span>
                   <span class="row-time value value--xsmall">{{ r[2] }}</span>

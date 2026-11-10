@@ -601,6 +601,7 @@ describe("every class exists in the framework", () => {
     "row-time",
     "bullet-strip",
     "card-name",
+    "card-split",
     "footer-stamp",
     "footer-label",
     "row-line--urgent",

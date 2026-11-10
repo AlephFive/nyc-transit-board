@@ -162,6 +162,16 @@
   /* The name is what identifies a card, so it is never crushed below a
      readable minimum — twelve bullets at Times Square took the heading
      down to "Times" before this. The strip yields first and clips. */
+  /* The rule between stacked cards. The framework draws it with a
+     `::before` on a zero-height box, so without a margin the next card's
+     heading sits flush against it and reads as part of the card above.
+     Asymmetric on purpose: more space above the rule than below, so the
+     gap belongs to the card that is ending rather than splitting the
+     difference and detaching the heading from its own rows. */
+  .card-split {
+    margin-top: 0.45em;
+    margin-bottom: 0.3em;
+  }
   .card-name {
     min-width: 7ch;
     /* One line, always. `data-clamp="1"` used to hold this — the framework
@@ -530,19 +540,24 @@
 {% endcomment %}
 {% assign row_pitch = 30 %}
 {% comment %}
-  The content budget, derived rather than tuned.
+  The content budget, derived from the cell rather than tuned by eye.
 
-  This layout sits in a half-height cell (the panel split top/bottom), so
-  the budget starts from half the screen, less the footer's 50px of
-  chrome — a framework `.title_bar` at `40px * --ui-scale` plus the 10px
-  `--gap`, with `--ui-scale: 1` on every 800x480 device.
+  `.mashup` is the screen less `--gap` on each side, and its rows are
+  `1fr 1fr` with another `--gap` between them. So a half-height cell is
+  `(device_height - 20 - 10) / 2`. The footer is a framework
+  `.title_bar`, `40px * --ui-scale` (1 on every 800x480 device), and it
+  sits outside `.content` as a sibling, so it has to come off the
+  limiter's budget or it is squeezed to nothing.
 
-  It was `times: 30 | divided_by: 100`, picked by eye while `.board-root`
-  was overflowing its cell rather than being sized by it.
+  It was `times: 30 | divided_by: 100` of the *screen*, picked by eye
+  while `.board-root` was overflowing its cell rather than sized by it.
 {% endcomment %}
-{% assign chrome_height = 50 %}
-{% assign cell_height = device_height | divided_by: 2 %}
-{% assign content_budget = cell_height | minus: chrome_height %}
+{% assign outer_gap = 20 %}
+{% assign inner_gap = 10 %}
+{% assign footer_height = 40 %}
+{% assign grid_height = device_height | minus: outer_gap %}
+{% assign cell_height = grid_height | minus: inner_gap | divided_by: 2 %}
+{% assign content_budget = cell_height | minus: footer_height %}
 {% assign card_rows = content_budget | divided_by: row_pitch %}
 {% assign card_height = card_rows | times: row_pitch %}
 
@@ -631,7 +646,7 @@
                     
                 {% endif %}
               </div>
-              <div class="border--h-40 w--full"></div>
+              <div class="border--h-40 w--full card-split"></div>
 
               {% if card.e %}
                 <span class="label label--small label--outline">Unavailable</span>
@@ -684,7 +699,7 @@
                 {% elsif r[4] == -1 %}
                   {% assign arrow = "›" %}
                 {% endif %}
-                      <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small">
+                      <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small w--full">
                         <span class="label label--small label--filled {{ bullet_class }}{% if bullet_class == "" %} row-badge{% endif %}">{% if bullet_class != "" %}<span>{{ glyph }}</span>{% else %}{{ r[0] }}{% endif %}</span>
                         <span class="row-dest title title--small grow">{% if arrow != "" %}{{ arrow }}&nbsp;{% endif %}{{ destination }}</span>
                         <span class="row-time value value--xsmall">{{ r[2] }}</span>
