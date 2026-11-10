@@ -409,6 +409,22 @@
   .board-root > .layout {
     flex: 1 1 auto;
     min-height: 0;
+    /* The framework sets `.layout { width: var(--screen-w) }` and never
+       overrides it for a mashup — the `.view--half_vertical .layout` rules
+       set height and padding only, and rely on `overflow: hidden` to clip
+       the excess. So in a cell the layout is still 800px wide while the
+       cell is ~408px, and anything inside sized against it is drawn off
+       the card: a right-aligned clock lands past the edge and vanishes.
+
+       Overriding the width to the cell's own is what makes `flex--between`
+       put the clock at the card's right edge rather than the screen's. */
+    width: 100%;
+    min-width: 0;
+  }
+  /* The rows' container, bounded the same way and for the same reason. */
+  .board-root .content {
+    width: 100%;
+    min-width: 0;
   }
   /* The empty state is a line of its own, not a row.
      
@@ -667,7 +683,7 @@
                 {% elsif r[4] == -1 %}
                   {% assign arrow = "›" %}
                 {% endif %}
-                <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small w--full">
+                <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small">
                   <span class="label label--small label--filled {{ bullet_class }}{% if bullet_class == "" %} row-badge{% endif %}">{% if bullet_class != "" %}<span>{{ glyph }}</span>{% else %}{{ r[0] }}{% endif %}</span>
                   <span class="row-dest title title--small grow">{% if arrow != "" %}{{ arrow }}&nbsp;{% endif %}{{ destination }}</span>
                   <span class="row-time value value--xsmall">{{ r[2] }}</span>
