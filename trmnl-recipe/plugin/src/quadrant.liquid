@@ -141,16 +141,6 @@
     white-space: nowrap;
     text-overflow: clip;
   }
-  /* The four network marks, holding the left of the footer where the
-     text label used to be. They never shrink — four bullets are the
-     smallest the footer gets, and squeezing them would clip a letter
-     rather than a word. */
-  .footer-marks {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-    margin-right: auto;
-  }
   .footer-stamp {
     margin-left: auto;
     flex-shrink: 0;
@@ -395,6 +385,16 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    /* A flex item defaults to `min-height: auto`, which floors it at its
+       content's height. In a mashup that floor is taller than the cell:
+       `.mashup-cell` is a flex box with `min-height: 0` and
+       `overflow: hidden`, so an overgrown child is silently clipped at the
+       bottom — which is where the footer lives. `height: 100%` alone does
+       not help, because the content floor wins over it.
+
+       It costs the full-screen layout nothing: there the content already
+       fits, so the floor never binds. */
+    min-height: 0;
   }
   .board-root > .layout {
     flex: 1 1 auto;
@@ -534,7 +534,22 @@
   part-row: the last entry on a card comes out smaller than the rest.
 {% endcomment %}
 {% assign row_pitch = 30 %}
-{% assign stack_rows = device_height | times: 55 | divided_by: 100 | divided_by: row_pitch %}
+{% comment %}
+  The content budget, derived rather than tuned.
+
+  A quadrant is half the panel's height (the grid is `1fr 1fr`), so the
+  budget starts from half the screen rather than all of it, less the
+  footer's 50px of chrome — a framework `.title_bar` at `40px *
+  --ui-scale` plus the 10px `--gap`, with `--ui-scale: 1` on every 800x480
+  device.
+
+  It was `times: 55 | divided_by: 100`, picked by eye while `.board-root`
+  was overflowing its cell rather than being sized by it.
+{% endcomment %}
+{% assign chrome_height = 50 %}
+{% assign cell_height = device_height | divided_by: 2 %}
+{% assign content_budget = cell_height | minus: chrome_height %}
+{% assign stack_rows = content_budget | divided_by: row_pitch %}
 {% assign stack_height = stack_rows | times: row_pitch %}
 
 {% comment %}
@@ -676,20 +691,15 @@
         <span class="title footer-label">Example board · choose your stations in settings</span>
       {% else %}
         {% comment %}
-          The networks as marks rather than as words. "NYC Subway, Bus,
-          Rail, Ferry" spelled out what four bullets show at a glance, and
-          cost 28 characters of a bar that also has to hold a timestamp.
-
-          Drawn like the row badges they echo — same filled circle, same
-          bitmap face — so the footer reads as part of the board rather
-          than as a caption under it.
+          Two words, not four bullets and not the networks spelled out.
+          "NYC Subway, Bus, Rail, Ferry" was 28 characters of a bar that
+          also holds a timestamp, and collided with it at a larger
+          ui-scale; the bullets that replaced it read as a fifth row of
+          badges rather than as a caption. The name of the board is what
+          the bar is for, and `.footer-label` already clips it rather
+          than pushing the stamp off the panel.
         {% endcomment %}
-        <span class="footer-marks">
-          <span class="label label--small label--filled bullet"><span>S</span></span>
-          <span class="label label--small label--filled bullet"><span>B</span></span>
-          <span class="label label--small label--filled bullet"><span>R</span></span>
-          <span class="label label--small label--filled bullet"><span>F</span></span>
-        </span>
+        <span class="title footer-label">NYC Transit</span>
       {% endif %}
       {% if a %}
         <span class="title footer-stamp">Last updated: {{ a }}</span>

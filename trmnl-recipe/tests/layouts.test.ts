@@ -211,22 +211,17 @@ describe("the display rule is identical in every layout", () => {
     }
   });
 
-  test("the footer names the networks and dates itself", () => {
+  test("the footer names the board and dates itself", () => {
     for (const [name, markup] of layouts) {
-      // Marks rather than words: four bullets say what the sentence
-      // said, in a bar that also has to hold a timestamp.
+      // Two words, not four bullets: the bullets read as a fifth row of
+      // badges, and the networks spelled out collided with the stamp.
       assert.ok(
-        markup.includes("footer-marks"),
-        `${name}.liquid does not show the networks`
+        markup.includes(">NYC Transit<"),
+        `${name}.liquid does not name the board`
       );
-      const marks = /<span class="footer-marks">([\s\S]*?)<\/span>\s*\{%/.exec(
-        markup
-      );
-      assert.ok(marks, `${name}.liquid has no network marks`);
-      assert.equal(
-        (marks![1].match(/class="label[^"]*bullet"/g) ?? []).length,
-        4,
-        `${name}.liquid should mark all four networks`
+      assert.ok(
+        !markup.includes("footer-marks"),
+        `${name}.liquid still carries the network marks`
       );
       assert.ok(
         markup.includes("Last updated: {{ a }}"),
@@ -608,7 +603,6 @@ describe("every class exists in the framework", () => {
     "card-name",
     "footer-stamp",
     "footer-label",
-    "footer-marks",
     "row-line--urgent",
     "bullet-strip--tag",
   ]);
