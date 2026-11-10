@@ -407,6 +407,14 @@
      `.trmnl` is in the selector because the framework's rule is (0,3,0)
      and a plainer one loses to it. */
   .trmnl .view--half_vertical {
+    /* The width needs the same pixel treatment as the height. The
+       framework sets `--half_vertical-w: 100%` on this device while its own
+       `:root` fallback is in pixels; left as a percentage the chain
+       below (`.grid` width:100%, `.col` width:100%) never resolves to a
+       real number, nothing bounds a row, and content runs to the
+       panel's last pixel — measured at x=789 of 800 — instead of
+       stopping at the frame. */
+    width: calc((var(--screen-w) - var(--gap) * 2) / 2 - var(--gap) / 2);
     height: calc((var(--screen-h) - var(--gap) * 2));
   }
   .trmnl .view--half_vertical .layout {
