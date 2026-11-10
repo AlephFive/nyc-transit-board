@@ -628,41 +628,6 @@
   `--dest-scale`, and the layout and title bar beneath it are already the
   two children the framework expects.
 {% endcomment %}
-{% comment %}
-  TEMPORARY geometry probe — remove once the mashup layouts are right.
-
-  Seven CSS theories have each been reasoned from the stylesheet and each
-  failed on hardware. This makes the device state what it measures.
-
-  The readout is appended to `.view` rather than left where it is written,
-  because `.layout` is `position: absolute` here and would otherwise be
-  the containing block — the probe would then be pinned to the very box
-  whose size is in question. Two short lines, so it stays readable in a
-  385px frame as well as a 780px one.
-{% endcomment %}
-<script>
-(function(){
-  function b(el){ if(!el) return "-"; var r=el.getBoundingClientRect();
-    return Math.round(r.width)+"x"+Math.round(r.height)+"@"+Math.round(r.left)+","+Math.round(r.top); }
-  function run(){
-    var v=document.querySelector("[class*=view--]");
-    if(!v) return;
-    var l=v.querySelector(".layout"), t=v.querySelector(".title_bar"),
-        row=v.querySelector(".row-line"), tm=row&&row.querySelector(".row-time");
-    var p=document.getElementById("probe");
-    if(!p){ p=document.createElement("div"); p.id="probe"; v.appendChild(p); }
-    p.setAttribute("style","position:absolute;left:0;top:0;z-index:999;"
-      +"background:#fff;color:#000;font:9px/1.15 monospace;padding:1px 3px;"
-      +"border:1px solid #000;white-space:pre;pointer-events:none");
-    p.textContent =
-      "V"+b(v)+"  L"+b(l)+" "+(l?getComputedStyle(l).position:"-")+"
-"
-     +"T"+b(t)+"  R"+b(row)+"  C"+b(tm);
-  }
-  if(document.readyState==="complete") run(); else addEventListener("load",run);
-  setTimeout(run,500);
-})();
-</script>
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     <div class="grid grid--cols-{{ used_columns }} h--full">
       {% for column_index in (0..2) %}
@@ -829,4 +794,33 @@
       <span class="instance">Example</span>
     {% endif %}
   </div>
+{% comment %}
+  TEMPORARY geometry probe — remove once the mashup layouts are right.
 
+  Runs synchronously, at the very end of the body. TRMNL's docs say the
+  renderer "freeze[s] setTimeout, setInterval + requestAnimationFrame
+  before the screenshot" and that code scheduled after initial load
+  "never runs" — so the first version of this, which waited on `load`
+  and a `setTimeout`, produced nothing on the panel. No deferral here:
+  by this point in the document every element above exists and has been
+  laid out, so measuring inline is both safe and the only option.
+{% endcomment %}
+<script>
+(function(){
+  function b(el){ if(!el) return "-"; var r=el.getBoundingClientRect();
+    return Math.round(r.width)+"x"+Math.round(r.height)+"@"+Math.round(r.left)+","+Math.round(r.top); }
+  var v=document.querySelector("[class*=view--]");
+  if(!v) return;
+  var l=v.querySelector(".layout"), t=v.querySelector(".title_bar"),
+      row=v.querySelector(".row-line"), tm=row&&row.querySelector(".row-time");
+  var p=document.createElement("div");
+  p.setAttribute("style","position:absolute;left:0;top:0;z-index:999;"
+    +"background:#fff;color:#000;font:9px/1.15 monospace;padding:1px 3px;"
+    +"border:1px solid #000;white-space:pre;pointer-events:none");
+  p.textContent =
+    "V"+b(v)+"  L"+b(l)+" "+(l?getComputedStyle(l).position:"-")+"
+"
+   +"T"+b(t)+"  R"+b(row)+"  C"+b(tm);
+  v.appendChild(p);
+})();
+</script>
