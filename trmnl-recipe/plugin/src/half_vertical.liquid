@@ -394,7 +394,37 @@
   .board-root {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    /* The framework's own `.layout` is the parent here, and it is a
+       row-direction flex that centres its children:
+
+         .layout { display:flex; justify-content:center;
+                   align-items:center; overflow:hidden }
+
+       Two consequences, both visible on the device and neither fixed by
+       `height: 100%`:
+
+       - `align-items: center` stops the stretch, so the board is centred
+         in the cell rather than filling it — the quadrant renders its
+         heading floating in the middle with the rows running off the
+         bottom.
+       - As a row-flex item it is sized by its content, so the rows have
+         no cell width to lay out against. `flex--between` has no free
+         space to distribute, the clock is placed immediately after the
+         destination instead of at the card's right edge, and whatever
+         exceeds the box is clipped. That is the missing departure time,
+         and it is missing in a two-row quadrant too — which is why no
+         amount of trimming rows or shrinking type ever recovered it.
+
+       `flex: 1` takes the whole main axis, `align-self: stretch` undoes
+       the centring on the cross axis. This is the same trap our own note
+       above records for `.flex--col`; the framework's `.layout` does it
+       too.
+
+       Full screen is unaffected: `.view--full .layout` sets an explicit
+       width and height, so its child was never content-sized. */
+    flex: 1;
+    align-self: stretch;
+    width: 100%;
     /* The footer is cut off on the device.
        ---------------------------------------------------------------
        `.board-root` sits inside a padded, `overflow: hidden` layout in a
