@@ -421,8 +421,25 @@
     flex-shrink: 0;
     margin-top: auto;
   }
+  /* Grid and flex children floor at their content's width
+     (`min-width: auto`), so a long destination or a wide badge pushes a
+     column past its track and, with `.layout`'s `overflow: hidden`,
+     straight under the card's right border — which is why the rows reach
+     the frame with no inset while the grid itself is correctly padded.
+     `min-width: 0` lets the track win instead. */
+  .board-root .col,
+  .board-root .content {
+    min-width: 0;
+  }
   .board-root > .layout {
-    flex: 1 1 auto;
+    /* `1 1 0` rather than `1 1 auto`. With an `auto` basis the layout's
+       starting size is its content's height, and the content here is a
+       grid carrying `h--full` — so the layout claims the whole cell and
+       there is no free space left in the column for the title bar, which
+       then renders past the bottom edge and disappears. A zero basis
+       makes the two siblings share the column: the bar takes its fixed
+       height, the layout takes the rest. */
+    flex: 1 1 0;
     min-height: 0;
   }
 
