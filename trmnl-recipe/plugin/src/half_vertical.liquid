@@ -409,21 +409,27 @@
   .board-root > .layout {
     flex: 1 1 auto;
     min-height: 0;
-    /* The framework sets `.layout { width: var(--screen-w) }` and never
-       overrides it for a mashup — the `.view--half_vertical .layout` rules
-       set height and padding only, and rely on `overflow: hidden` to clip
-       the excess. So in a cell the layout is still 800px wide while the
-       cell is ~408px, and anything inside sized against it is drawn off
-       the card: a right-aligned clock lands past the edge and vanishes.
-
-       Overriding the width to the cell's own is what makes `flex--between`
-       put the clock at the card's right edge rather than the screen's. */
-    width: 100%;
-    min-width: 0;
   }
-  /* The rows' container, bounded the same way and for the same reason. */
-  .board-root .content {
+  /* The renderer nests a second view inside the mashup cell, and gives it
+     `view--full`:
+
+       <div class="view view--half_vertical">   the cell, ~390px
+         <div class="view view--full">          780px — `var(--full-w)`
+
+     So the board is laid out at full-screen width inside a half-width
+     cell. `flex--between` then puts the right-aligned clock at the 780px
+     mark, where the cell's `overflow: hidden` clips it — which is why the
+     departure times were missing while every other element, laid out from
+     the left, looked fine.
+
+     `full.liquid` nests the same way and is unaffected, because there both
+     views are the same width. Hence this rule lives only in the mashup
+     layouts, keyed on the cell class so it cannot fire on a full screen. */
+  .view--half_vertical > .view--full,
+  .view--half_horizontal > .view--full,
+  .view--quadrant > .view--full {
     width: 100%;
+    height: 100%;
     min-width: 0;
   }
   /* The empty state is a line of its own, not a row.
@@ -575,7 +581,7 @@
   the *screen* overshot by the 20px of outer gap, which ate the footer.
 {% endcomment %}
 {% assign outer_gap = 20 %}
-{% assign footer_height = 40 %}
+{% assign footer_height = 32 %}
 {% assign cell_height = device_height | minus: outer_gap %}
 {% assign content_budget = cell_height | minus: footer_height %}
 {% assign stack_rows = content_budget | divided_by: row_pitch %}
