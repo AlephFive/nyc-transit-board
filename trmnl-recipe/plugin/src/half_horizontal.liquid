@@ -384,28 +384,37 @@
      (`min-width: auto`), so a long destination pushes a column past its
      track and `.layout`'s `overflow: hidden` clips it against the card's
      border. `min-width: 0` lets the track win. */
-  /* Take the title bar's height off the layout, in flow.
+  /* Give the frame a height in PIXELS, like the full layout has.
      ---------------------------------------------------------------
-     The framework hands the layout the whole frame:
+     This is the asymmetry between the layout that works and the three
+     that do not. On this device the framework sets
 
-       .trmnl .view--half_horizontal .layout { height: calc(var(--half_horizontal-h)) }
+       --full-h            calc(var(--screen-h) - var(--gap) * 2)   <- px
+       --half_horizontal-h  100%                                    <- %
 
-     where `--half_horizontal-h` is `100%`. It subtracts the bar in a
-     second rule keyed on `:has(+.title_bar)`, which
-     `tests/layouts.test.ts` explains we cannot depend on — an
-     unsupported selector drops silently, leaving the full height in
-     force. That is why the bar renders past the bottom edge.
+     so `full.liquid`'s `.layout { height: calc(var(--full-h)) }` is a
+     definite 460px and every percentage beneath it resolves against a
+     real number. In a mashup the same declaration is `calc(100%)`, and
+     each child's `height: 100%` / `max-height: 100%` is then a
+     percentage of a percentage all the way down to `.col`, which is what
+     bounds `.content`. A chain like that only holds if every link is
+     definite; one indefinite link and `.col`'s cap silently becomes "as
+     tall as the rows already are", which is no cap at all — 85 rows, the
+     right edge clipped, the bar pushed off.
 
-     The subtraction has to happen here, and it has to leave `.layout` a
-     normal in-flow box: the Content Limiter sizes itself from
-     `layout.clientHeight`, so taking it out of flow (as an earlier
-     attempt did with `position: absolute`) breaks the measurement and
-     the rows stop being trimmed at all.
+     So state it the way the full layout has it: the cell's own pixels,
+     derived from `--screen-h` and `--gap`, less the title bar. The
+     mashup grid is `calc(var(--screen-h) - var(--gap)*2)` tall with rows
+     `1fr 1fr` and a `var(--gap)` between them, so a half cell is
+     `(that - gap) / 2`.
 
-     `.trmnl` is part of the selector deliberately — the framework's own
-     rule is (0,3,0) and a plainer one loses to it. */
+     `.trmnl` is in the selector because the framework's own rule is
+     (0,3,0) and a plainer one loses to it. */
+  .trmnl .view--half_horizontal {
+    height: calc((var(--screen-h) - var(--gap) * 2 - var(--gap)) / 2);
+  }
   .trmnl .view--half_horizontal .layout {
-    height: calc(100% - var(--title-bar-small-height));
+    height: calc(calc((var(--screen-h) - var(--gap) * 2 - var(--gap)) / 2) - var(--title-bar-small-height));
   }
   /* Nothing inside may be wider than the track it sits in. A grid or
      flex child floors at `min-width: auto` — its content's width — so a
