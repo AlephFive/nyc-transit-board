@@ -682,7 +682,8 @@
         <div class="col gap--small h--full col--start">
           {% for card in c %}
             {% if card.s == top_slot %}
-              <div class="flex flex--row flex--center-y gap--small">
+              <div class="w--full">
+                <div class="flex flex--row flex--center-y gap--small">
                 <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
                 {% if card.b %}
                   {% comment %}
@@ -804,6 +805,7 @@
                     <div class="row-empty title title--small text--center">No upcoming departures</div>
                   {% endif %}
                 </div>
+              </div>
               {% endif %}
             {% endif %}
           {% endfor %}
