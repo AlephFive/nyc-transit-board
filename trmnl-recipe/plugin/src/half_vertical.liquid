@@ -691,6 +691,25 @@
           {% else %}
             {% assign shown = 0 %}
             {% for col in card.k %}
+                    {% comment %}
+                      The direction heading — the MTA's own platform wording
+                      ("Manhattan", "Queens", "Uptown"), not north/south.
+
+                      These layouts put both directions in one `.content`
+                      rather than full.liquid's column each, so without it
+                      the two merge into one undifferentiated list and a
+                      rider cannot tell which way a train is going. One line
+                      per direction is cheap next to that.
+
+                      Omitted when the backend sends none, which is every
+                      single-direction card: a railroad, a ferry, or a
+                      subway terminal where only one direction is boardable.
+                    {% endcomment %}
+                    {% if col.h != "" %}
+                      <div class="flex flex--row w--full">
+                        <span class="label label--small md:label--base label--underline">{{ col.h }}</span>
+                      </div>
+                    {% endif %}
               {% for r in col.r %}
                 {% if shown >= 5 %}{% break %}{% endif %}
                 {% assign shown = shown | plus: 1 %}
