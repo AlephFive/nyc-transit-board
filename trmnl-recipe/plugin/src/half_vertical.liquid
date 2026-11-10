@@ -394,39 +394,34 @@
   .board-root {
     display: flex;
     flex-direction: column;
-    /* The framework's own `.layout` is the parent here, and it is a
-       row-direction flex that centres its children:
+    /* `.layout` is our own child, not our parent — the built DOM is
+
+         .view--quadrant > .board-root > .layout > .content
+                                       > .title_bar
+
+       and the framework centres `.layout`'s children:
 
          .layout { display:flex; justify-content:center;
                    align-items:center; overflow:hidden }
 
-       Two consequences, both visible on the device and neither fixed by
-       `height: 100%`:
+       So the element being centred is `.content`, which is why the
+       quadrant draws its heading floating mid-cell with the rows running
+       off the bottom, and why the rows get no cell width for
+       `flex--between` to push the clock against.
 
-       - `align-items: center` stops the stretch, so the board is centred
-         in the cell rather than filling it — the quadrant renders its
-         heading floating in the middle with the rows running off the
-         bottom.
-       - As a row-flex item it is sized by its content, so the rows have
-         no cell width to lay out against. `flex--between` has no free
-         space to distribute, the clock is placed immediately after the
-         destination instead of at the card's right edge, and whatever
-         exceeds the box is clipped. That is the missing departure time,
-         and it is missing in a two-row quadrant too — which is why no
-         amount of trimming rows or shrinking type ever recovered it.
-
-       The framework ships the fix as a utility, and it has to be a class
-       on the element rather than CSS here:
+       The framework's own utility fixes it, and must sit on the child of
+       `.layout`:
 
          .trmnl .layout>.stretch { align-self:stretch; flex:1 1 0% }
 
-       That selector is (0,3,0); a plain `.board-root` rule is (0,1,0) and
-       loses to it, which is why declaring `flex: 1` and `align-self:
-       stretch` in this block changed nothing on the device. `.board-root`
-       carries `.stretch` in the markup instead.
+       `.content` carries `.stretch` in the markup. Earlier attempts put
+       it on `.board-root` and declared the same properties in CSS here;
+       both were no-ops — the selector cannot match a parent of `.layout`,
+       and a plain `.board-root` rule (0,1,0) loses to the framework's
+       (0,3,0) anyway.
 
        Full screen is unaffected: `.view--full .layout` sets an explicit
-       width and height, so its child was never content-sized. */
+       width and height. */
     width: 100%;
     /* The footer is cut off on the device.
        ---------------------------------------------------------------
@@ -654,9 +649,9 @@
   `--dest-scale`, and the layout and title bar beneath it are already the
   two children the framework expects.
 {% endcomment %}
-<div class="board-root stretch"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
+<div class="board-root"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
   <div class="layout">
-    <div class="content w--full h--full"
+    <div class="content stretch w--full h--full"
          data-content-limiter="true"
          data-content-max-height="{{ stack_height }}">
 {% comment %}
