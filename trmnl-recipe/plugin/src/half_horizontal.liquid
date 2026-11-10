@@ -395,6 +395,19 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    /* The footer is cut off on the device.
+       ---------------------------------------------------------------
+       `.board-root` sits inside a padded, `overflow: hidden` layout in a
+       mashup cell. `height: 100%` resolves against the padding box while
+       the visible area is the content box, so the column is taller than
+       what is shown and the title bar — last in the column — falls into
+       the clipped strip. `max-height: 100%` with `box-sizing: border-box`
+       keeps it inside what is actually drawn.
+
+       Harmless on a full screen, where `.view--full .layout` has no
+       padding and the two boxes are the same. */
+    box-sizing: border-box;
+    max-height: 100%;
     /* A flex item defaults to `min-height: auto`, which floors it at its
        content's height. In a mashup that floor is taller than the cell:
        `.mashup-cell` is a flex box with `min-height: 0` and
@@ -409,27 +422,27 @@
   .board-root > .layout {
     flex: 1 1 auto;
     min-height: 0;
+    /* The clipped departure times.
+       ---------------------------------------------------------------
+       The framework pads the layout inside a mashup cell but not on a
+       full screen:
+
+         .view--half_vertical .layout { padding: var(--gap) }
+         .view--full .layout          { width: ...; height: ... }
+
+       and base `.layout` is `overflow: hidden`. A flex item defaults to
+       `min-width: auto`, so the rows' intrinsic width wins over the
+       padded box, the row runs under the padding, and the right-aligned
+       clock lands in the clipped strip — the one element far enough
+       right to be cut. `min-width: 0` lets the box win instead.
+
+       Full screen is unaffected: `.view--full .layout` has no padding,
+       so there is no strip to be pushed into. */
+    min-width: 0;
   }
-  /* The renderer nests a second view inside the mashup cell, and gives it
-     `view--full`:
-
-       <div class="view view--half_vertical">   the cell, ~390px
-         <div class="view view--full">          780px — `var(--full-w)`
-
-     So the board is laid out at full-screen width inside a half-width
-     cell. `flex--between` then puts the right-aligned clock at the 780px
-     mark, where the cell's `overflow: hidden` clips it — which is why the
-     departure times were missing while every other element, laid out from
-     the left, looked fine.
-
-     `full.liquid` nests the same way and is unaffected, because there both
-     views are the same width. Hence this rule lives only in the mashup
-     layouts, keyed on the cell class so it cannot fire on a full screen. */
-  .view--half_vertical > .view--full,
-  .view--half_horizontal > .view--full,
-  .view--quadrant > .view--full {
-    width: 100%;
-    height: 100%;
+  .board-root .content {
+    /* Same reason: the rows' container must be allowed to be narrower
+       than their intrinsic width. */
     min-width: 0;
   }
   /* The empty state is a line of its own, not a row.
@@ -576,7 +589,14 @@
 {% endcomment %}
 {% assign outer_gap = 20 %}
 {% assign inner_gap = 10 %}
-{% assign footer_height = 32 %}
+{% comment %}
+  32px for the title bar, plus the 20px of vertical padding the framework
+  puts on `.layout` inside a mashup cell (`padding: var(--gap)`, top and
+  bottom) — which the earlier budgets never counted, so the rows ran past
+  what the cell actually draws and pushed the footer into the clipped
+  strip.
+{% endcomment %}
+{% assign footer_height = 52 %}
 {% assign grid_height = device_height | minus: outer_gap %}
 {% assign cell_height = grid_height | minus: inner_gap | divided_by: 2 %}
 {% assign content_budget = cell_height | minus: footer_height %}
