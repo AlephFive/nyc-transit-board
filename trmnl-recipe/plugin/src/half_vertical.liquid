@@ -162,36 +162,6 @@
   /* The name is what identifies a card, so it is never crushed below a
      readable minimum — twelve bullets at Times Square took the heading
      down to "Times" before this. The strip yields first and clips. */
-  /* The rule between stacked cards. The framework draws it with a
-     `::before` on a zero-height box, so without a margin the next card's
-     heading sits flush against it and reads as part of the card above.
-     Asymmetric on purpose: more space above the rule than below, so the
-     gap belongs to the card that is ending rather than splitting the
-     difference and detaching the heading from its own rows. */
-  .card-split {
-    margin-top: 0.45em;
-    margin-bottom: 0.3em;
-  }
-  /* Close the gap between the station name and what follows it.
-     ---------------------------------------------------------------
-     Measured on the panel: the name ended at y=278, the rule beneath it
-     sat at y=294 and the direction heading at y=310, with the first
-     departure only at y=331 — about 52px of mostly empty space at the
-     top of every card, in layouts that are short of vertical room.
-
-     Three things stacked: `.col`'s `gap--small` between the heading row
-     and the content, `.card-split`'s own margins, and the direction
-     heading sitting on the content's leading edge. Each is tightened
-     rather than removed, so the name still reads as a heading rather
-     than as another row. */
-  .card-head {
-    margin-bottom: 0.1em;
-  }
-  .dir-head {
-    margin-top: 0.1em;
-    margin-bottom: 0.1em;
-    line-height: 1.1;
-  }
   .card-name {
     min-width: 7ch;
     /* One line, always. `data-clamp="1"` used to hold this — the framework
@@ -673,10 +643,10 @@
 {% endcomment %}
       {% for card in c limit: 3 %}
         {% unless forloop.first %}
-          <div class="border--h-40 w--full card-split"></div>
+          <div class="border--h-40 w--full"></div>
         {% endunless %}
 
-        <div class="card-head flex flex--row flex--center-y gap--small">
+        <div class="flex flex--row flex--center-y gap--small">
           <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
           {% if card.b %}
             {% comment %}
@@ -739,7 +709,7 @@
                       subway terminal where only one direction is boardable.
                     {% endcomment %}
                     {% if col.h != "" %}
-                      <div class="dir-head flex flex--row w--full">
+                      <div class="flex flex--row w--full">
                         <span class="label label--small md:label--base label--underline">{{ col.h }}</span>
                       </div>
                     {% endif %}
