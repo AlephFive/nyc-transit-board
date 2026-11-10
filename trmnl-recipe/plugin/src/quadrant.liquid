@@ -384,6 +384,30 @@
      (`min-width: auto`), so a long destination pushes a column past its
      track and `.layout`'s `overflow: hidden` clips it against the card's
      border. `min-width: 0` lets the track win. */
+  /* Reserve the title bar's height, without `:has()`.
+     ---------------------------------------------------------------
+     The framework does this itself:
+
+       .view--quadrant .layout:has(+.title_bar) {
+         height: calc(var(--quadrant-h) - var(--title-bar-small-height))
+       }
+
+     but `tests/layouts.test.ts` records why we cannot rely on `:has()`
+     here — this renders on an e-ink device whose browser version is not
+     ours to choose, and an unsupported selector drops its whole rule
+     silently. When it does drop, the plain rule below it wins:
+
+       .view--quadrant .layout { height: calc(var(--quadrant-h)) }
+
+     which hands the layout the entire cell and leaves nothing for the
+     bar, so it renders past the bottom edge. That is the missing footer.
+
+     Subtracting the bar's height restates the framework's own intent in
+     a selector every browser supports. `full.liquid` reaches the same
+     end differently, via a wrapper that makes the two share a column. */
+  .view--quadrant .layout {
+    height: calc(var(--quadrant-h) - var(--title-bar-small-height));
+  }
   .layout .col,
   .layout .content {
     min-width: 0;
