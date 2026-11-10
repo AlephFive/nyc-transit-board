@@ -384,33 +384,35 @@
      (`min-width: auto`), so a long destination pushes a column past its
      track and `.layout`'s `overflow: hidden` clips it against the card's
      border. `min-width: 0` lets the track win. */
-  /* Make the view share its height between the layout and the bar.
+  /* Let the layout and the title bar share the view's height.
      ---------------------------------------------------------------
-     `.view` is already `display:flex; flex-direction:column`, so its two
-     children can divide the height between them — but the framework
-     gives `.layout` a fixed `height: calc(var(--half_vertical-h))`, which is
-     the whole cell, and `--half_vertical-h` is itself `100%`. That leaves
-     nothing for the title bar, which renders past the bottom edge.
+     `.view` is `display:flex; flex-direction:column` with a definite
+     height — `height: 100% !important` of `.mashup-cell`, which is a
+     grid track of `calc(var(--screen-h) - var(--gap)*2)`. So its two
+     children can simply divide that height between them.
 
-     The framework's own correction uses `:has(+.title_bar)`, and
-     `tests/layouts.test.ts` records why we cannot depend on that
-     selector here: the device's browser version is not ours to choose,
-     and an unsupported selector drops its rule silently.
+     The framework instead gives the layout the whole cell:
 
-     So state it in flex terms instead, with no percentage to resolve:
-     the layout takes the leftover space, the bar keeps its own height.
-     `min-height: 0` lets the layout shrink below its content so the
-     Content Limiter, not the rows, decides what fits. */
-  .view--half_vertical .layout {
+       .trmnl .view--half_vertical .layout { height: calc(var(--half_vertical-h)) }
+
+     and corrects it with a `:has(+.title_bar)` variant that
+     `tests/layouts.test.ts` explains we cannot depend on — the device's
+     browser version is not ours to choose, and an unsupported selector
+     drops its rule silently, leaving the uncorrected height in force.
+
+     Note the `.trmnl` ancestor: the framework's selector is (0,3,0), so
+     a plain `.view--half_vertical .layout` rule is (0,2,0) and loses. An
+     earlier attempt did exactly that and changed nothing on the panel. */
+  .trmnl .view--half_vertical .layout {
     height: auto;
     flex: 1 1 auto;
     min-height: 0;
   }
-  .view--half_vertical .title_bar {
+  .trmnl .view--half_vertical .title_bar {
     flex: 0 0 auto;
   }
-  .layout .col,
-  .layout .content {
+  .trmnl .layout .col,
+  .trmnl .layout .content {
     min-width: 0;
   }
 
