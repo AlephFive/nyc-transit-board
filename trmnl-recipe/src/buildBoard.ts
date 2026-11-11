@@ -147,7 +147,7 @@ export interface BuildEnv {
 }
 
 /** Row options plus the per-stop fetch limit the feeds that take one need. */
-type SharedOptions = Omit<RowOptions, "walkTime"> & { fetchLimit: number };
+export type SharedOptions = Omit<RowOptions, "walkTime"> & { fetchLimit: number };
 
 /**
  * One decoded feed per family, shared across every card in a request.
@@ -169,7 +169,7 @@ type SubwayFeed = Awaited<ReturnType<typeof fetchMultipleTrainLines>>;
 type RailroadFeed = Awaited<ReturnType<typeof fetchMultipleRailroads>>;
 type FerryFeed = Awaited<ReturnType<typeof fetchFerryData>>;
 
-interface FeedCache {
+export interface FeedCache {
   /** Keyed by the sorted line set a card needs, since lines share feeds. */
   subway: Map<string, Promise<SubwayFeed>>;
   /** Keyed by railroad: LIRR and Metro-North are separate endpoints. */
@@ -178,7 +178,7 @@ interface FeedCache {
   ferry: Map<string, Promise<FerryFeed>>;
 }
 
-const emptyFeedCache = (): FeedCache => ({
+export const emptyFeedCache = (): FeedCache => ({
   subway: new Map(),
   railroad: new Map(),
   ferry: new Map(),
@@ -423,7 +423,7 @@ function rowFilterFor(routes: string[] | undefined) {
  * These are rider-facing — `S` for every shuttle, `SIR` for the railway — and
  * are what the card's heading bullets show.
  */
-function subwayRoutesFor(stopIds: string[]): string[] {
+export function subwayRoutesFor(stopIds: string[]): string[] {
   const routes = new Set<string>();
   for (const stopId of stopIds) {
     for (const route of getSubwayRoutes(stopId)) routes.add(route);
@@ -445,7 +445,7 @@ function subwayRoutesFor(stopIds: string[]): string[] {
  * skipped at fetch. They must never reach the panel — these are internal
  * names, and a diamond `1` is a train nobody can board.
  */
-function subwayLinesFor(routes: string[]): string[] {
+export function subwayLinesFor(routes: string[]): string[] {
   const ids = new Set<string>();
   for (const route of routes) {
     for (const id of subwayRouteIds(route)) ids.add(id);
@@ -499,7 +499,7 @@ export function knownStop(stopId: string, transitType: TransitType): boolean {
 }
 
 /** Build the two direction columns of a subway card. */
-async function subwayCard(
+export async function subwayCard(
   card: CardSettings,
   rowOptions: SharedOptions,
   feeds: FeedCache
@@ -583,7 +583,7 @@ async function subwayCard(
 }
 
 /** Build a railroad card: one list, both railroads sharing a feed fetch. */
-async function railroadCard(
+export async function railroadCard(
   card: CardSettings,
   rowOptions: SharedOptions,
   feeds: FeedCache
@@ -645,7 +645,7 @@ async function railroadCard(
  * the whole card failing when half of it works. The card only reports an error
  * when every one of its stops failed.
  */
-async function busCard(
+export async function busCard(
   card: CardSettings,
   rowOptions: SharedOptions,
   env: BuildEnv
@@ -732,7 +732,7 @@ async function busCard(
  * NYC Ferry's own GTFS-realtime feed, joined against the static package for
  * the route name and headsign the feed itself omits.
  */
-async function ferryCard(
+export async function ferryCard(
   card: CardSettings,
   rowOptions: SharedOptions,
   feeds: FeedCache

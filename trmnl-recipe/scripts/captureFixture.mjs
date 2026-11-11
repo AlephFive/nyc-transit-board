@@ -103,7 +103,18 @@ const matching = decoded.entity.filter((entity) =>
  * Twenty covers both directions and every branch at the stations captured so
  * far, with room to spare.
  *
- * Earliest first, so the kept trips are the ones a card would actually show.
+ * The *soonest upcoming* trips, which is not the same as the earliest in the
+ * feed. A railroad feed covers the whole service day — the LIRR sends 106
+ * trips calling at Jamaica, of which 25 have already been and gone — so
+ * taking the earliest twenty takes twenty trips that are over. Rebasing on
+ * load preserves each trip's offset from the capture instant, so a fixture
+ * captured that way is *permanently* in the past and every card built from
+ * it renders zero rows while looking perfectly healthy.
+ *
+ * That is the same staleness trap `fixtures/load.ts` documents, entered from
+ * the other end: rebasing fixes a fixture that ages, not one that was
+ * already past when it was written. Subway feeds hid it, because their
+ * horizon is short enough that the earliest trips are also the next ones.
  */
 const MAX_TRIPS = 20;
 
@@ -117,7 +128,25 @@ const departureTime = (entity) => {
   return times.length > 0 ? Math.min(...times) : Infinity;
 };
 
-const entities = [...matching]
+const capturedAt = Math.floor(Date.now() / 1000);
+
+/**
+ * Trips still to come, soonest first.
+ *
+ * Falls back to the whole matching set when nothing is upcoming — a feed
+ * captured after the last train of the night still yields a fixture, and the
+ * warning below says so rather than writing a silently empty one.
+ */
+const upcoming = matching.filter((entity) => departureTime(entity) > capturedAt);
+if (upcoming.length === 0) {
+  console.warn(
+    `\n  warning: no upcoming trips at ${stopIds.join(", ")} — every matching\n` +
+      `  trip has already departed. The fixture will yield no rows. Recapture\n` +
+      `  while the stop is in service.`
+  );
+}
+
+const entities = (upcoming.length > 0 ? upcoming : [...matching])
   .sort((a, b) => departureTime(a) - departureTime(b))
   .slice(0, MAX_TRIPS);
 
