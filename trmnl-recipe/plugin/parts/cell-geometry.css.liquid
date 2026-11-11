@@ -1,0 +1,36 @@
+  /* Give the frame a height in pixels, as the full layout has.
+     ---------------------------------------------------------------
+     On every device the framework sets `--{{VIEW}}-h: 100%`,
+     while `--full-h` is `calc(var(--screen-h) - var(--gap) * 2)`. So
+     `full.liquid`'s layout is a definite pixel height and every
+     percentage beneath it — `.grid`'s `h--full`, `.col`'s
+     `height/min-height/max-height: 100%` — resolves against a real
+     number. `.col` is what bounds `.content`, so that chain is what
+     makes `grow basis--0` cap anything at all.
+
+     In a mashup the same declaration is `calc(100%)` and the chain is
+     percentages the whole way down. One indefinite link and `.col`'s cap
+     silently becomes "as tall as the rows already are".
+
+     The value below is the framework's own `:root` fallback for this
+     view, copied verbatim. It is written in terms of `--screen-h` and
+     `--gap`, so it follows whatever device is rendering — a 2560px frame
+     or a 400px playdate — rather than hardcoding this panel's numbers.
+     `tests/layouts.test.ts` checks it still matches the framework.
+
+     `.trmnl` is in the selector because the framework's rule is (0,3,0)
+     and a plainer one loses to it. */
+  .trmnl .view--{{VIEW}} {
+    /* The width needs the same pixel treatment as the height. The
+       framework sets `--{{VIEW}}-w: 100%` on this device while its own
+       `:root` fallback is in pixels; left as a percentage the chain
+       below (`.grid` width:100%, `.col` width:100%) never resolves to a
+       real number, nothing bounds a row, and content runs to the
+       panel's last pixel — measured at x=789 of 800 — instead of
+       stopping at the frame. */
+    width: {{CELL_W}};
+    height: {{CELL_H}};
+  }
+  .trmnl .view--{{VIEW}} .layout {
+    height: calc({{CELL_H}} - var(--title-bar-small-height));
+  }

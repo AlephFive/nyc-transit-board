@@ -1,0 +1,970 @@
+{% part: device-profile %}
+
+<style>
+  /* MTA route bullets: a circle for local service, a diamond for express.
+     The feed names an express variant by suffixing X - 6X and 7X are the
+     ones that run today - so the X is a shape, not part of the route name,
+     and is stripped before display.
+
+     Framework labels are pills, and it has no circle or diamond utility, so
+     the two shapes are defined here. Sizes are in em so they follow whatever
+     element size the label is given at each breakpoint; this block sets no
+     font-size of its own. */
+  .bullet {
+    /* 1.7em overflowed a heading once a complex carried four routes, and
+       stacked a row's text below its own bullet instead of beside it. The
+       framework's type does not step down at this device size — every label
+       size resolves to the same 16px — so width has to come from the glyph
+       box rather than from a smaller face. */
+    width: 1.35em;
+    height: 1.35em;
+    /* The framework's own .label padding lands later in the cascade and
+       stretches the box back into a rounded rectangle once the glyph is
+       two characters wide. Pinning min/max as well as width is what keeps
+       SI a circle at the smaller layouts' label sizes. */
+    min-width: 1.35em;
+    max-width: 1.35em;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    /* Centres the glyph on the row's text baseline box. Without it a bullet
+       sits optically high beside the destination it labels. */
+    align-items: center;
+    line-height: 1;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  /* The glyph, not the circle.
+     `.bullet` sizes itself in `em`, so putting the reduction on the bullet
+     would shrink the circle with it and break the shared centre line the
+     column is read down. The span inside carries it instead: the numeral
+     sits a touch smaller in a circle that has not moved. */
+  .bullet > span {
+    font-size: 0.92em;
+    line-height: 1;
+  }
+  .bullet--express {
+    border-radius: 0;
+    /* A rotated square's bounding box grows by root 2, so a diamond would
+       sit 29px wide beside a 20px circle and push its row out of line.
+       Scaling by 1/root 2 would keep the two in exactly the same space —
+       but a diamond reads smaller than a circle of equal bounding box,
+       because the corners that carry its width hold no ink. 0.78 gives
+       back the couple of pixels that costs, which is a hair over its
+       share and still well inside the row. */
+    transform: rotate(45deg) scale(0.78);
+  }
+  /* Counter-rotate the glyph so the number stays upright in the diamond. */
+  .bullet--express > span {
+    display: block;
+    /* Undo both, so the glyph stays upright and full size in the diamond. */
+    transform: rotate(-45deg) scale(1.414);
+  }
+  /* Two letters in a circle sized for one would touch the curve on both
+     sides, so SI - the only two-character bullet in the system - is set
+     smaller and tighter, which is what the MTA's own SI bullet does. The
+     circle keeps its diameter, so it still lines up with every other
+     bullet in the column. */
+  .bullet--pair > span {
+    /* 0.78em cleared the curve but rendered SI as a smudge in the smaller
+       row labels on a 1-bit panel. 0.88em with the tracking pulled in is
+       the most type that still fits, and stays legible at row size. */
+    font-size: 0.88em;
+    letter-spacing: -0.06em;
+    /* The circle's padding is zero, so without this the tracking on the
+       final letter pushes SI visibly left of centre. */
+    text-indent: -0.06em;
+  }
+  /* The footer never reflows: the label takes what is left, the stamp
+     keeps its width, and a long label clips rather than pushing the stamp
+     off the panel or wrapping the bar onto a second line. */
+  .footer-label {
+    /* `flex: 1 1 0` so it both takes the free space and gives it back.
+       Without the shrink half the pair sizes to its content and the bar
+       overflows — the stamp pushed to the panel's edge and the label ran
+       under it. `min-width: 0` is what lets a flex item shrink below its
+       text at all. */
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+  }
+  .footer-stamp {
+    margin-left: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding-left: 0.5em;
+  }
+  /* The bullet strip takes what the station name leaves and clips there.
+
+     It was a fixed count — four in `full`, three in the smaller layouts —
+     set when bullets were 1.7em and a twelve-route complex wrapped onto a
+     second line. Any fixed count is the wrong shape: Times Square has
+     twelve routes, so a cap silently drops routes the rows below still
+     show, and the heading ends up contradicting its own card. Clipping
+     instead means what fits is shown and the cap cannot go stale against a
+     future type size.
+
+     `flex-shrink` lets the name win when both cannot fit, and `nowrap`
+     keeps the heading one line tall. */
+  /* The name is what identifies a card, so it is never crushed below a
+     readable minimum — twelve bullets at Times Square took the heading
+     down to "Times" before this. The strip yields first and clips. */
+  .card-name {
+    min-width: 7ch;
+    /* One line, always. `data-clamp="1"` used to hold this — the framework
+       truncates in JS — and removing it to get rid of the ellipsis took
+       the wrapping guard with it, so "116 St-Columbia University" broke
+       onto a second line and pushed the card's rows down.
+
+       Clipping is the replacement: the name shows as much as fits and
+       stops, which is the same rule the rows follow. */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+  }
+  /* The mark slot holds either subway bullets or one network tag, and the
+     two want opposite things: a long bullet list must yield to the station
+     name, where a tag is a single word that is useless once clipped.
+
+     So the caps below are applied by a modifier the template sets, not by
+     `:has(.type-tag)`. The selector would read better, but this markup has
+     to render on an e-ink device whose browser version is not ours to
+     choose, and an unsupported selector drops the whole rule silently —
+     which here would mean shipping the unreadable tags this fixes. */
+  .bullet-strip--tag {
+    max-width: none;
+    flex-shrink: 0;
+  }
+  .bullet-strip {
+    display: flex;
+    /* The marks never give way. A station name is clipped and still
+       readable — "116 St-Columbia Uni…" tells a rider which station —
+       where a clipped bullet row loses whole routes, and a route either
+       stops here or it does not. The name shrinks first. */
+    flex-shrink: 0;
+    /* A ceiling as well as shrink, so a long route list cannot claim the
+       heading. Half is enough for six marks, which is as many as tell a
+       rider anything the name has not.
+
+       Kept as a ceiling even though the strip no longer shrinks: without
+       it a twelve-route complex would push the station name out of its
+       own heading entirely, and a card with no name is worse than one
+       with no bullets. */
+    max-width: 50%;
+    /* Not `inherit`: that takes the heading row's `gap--small` (7px), which
+       is the right distance between the station name and the strip but too
+       much between the bullets themselves — a route list reads as one
+       object, and 7px at a 1.35em bullet spaces it out into separate marks.
+       4px groups them while keeping the circles clear of each other. */
+    gap: 4px;
+    overflow: hidden;
+    flex-wrap: nowrap;
+  }
+  /* A heading tag names the network — LIRR, Metro North, Bus, Ferry — and
+     shares its slot with the subway's route bullets. Unlike a bullet it is
+     words, so it needs bounding: without this a long one wraps onto a second
+     line, pushes past the card's edge into the heading beside it, and
+     crushes the station name it was meant to sit next to.
+
+     The station name is what a rider reads first, so the tag is the one that
+     gives way: it will not grow past a third of the heading, will not wrap,
+     and ellipsizes when it must. */
+  .type-tag {
+    /* Smaller than the heading it sits beside, so a four-bullet complex and
+       a long network name both clear the card edge. */
+    font-size: 0.82em;
+    padding-top: 0;
+    padding-bottom: 0;
+    /* A floor in `ch`, as on `.row-badge`, and for the same reason: the tag
+       shares the heading's mark slot with the subway's bullets, and that
+       slot is sized for circles. Without a floor "LIRR", "Bus" and "Ferry"
+       were squeezed to an unreadable black square — the strip shrank them
+       as if they were bullets, which is what they are standing in for but
+       not what they are shaped like.
+
+       The width then follows the content rather than a percentage. 33% of
+       the heading is 11ch on a full card and far less on a split one, so a
+       fixed share clipped "Metro North" from both ends — it rendered as
+       "tro No" and ran under the station name. `max-content` lets the tag
+       be as wide as its word and no wider; `.card-name`'s own floor is
+       what stops it taking the whole heading. */
+    min-width: 5ch;
+    width: max-content;
+    max-width: 100%;
+    flex-shrink: 0;
+    /* Match the bullets beside it, so the heading marks share a baseline
+       box whichever kind a card carries. */
+    height: 1.35em;
+    /* As on `.row-badge`: the framework's 5px either side is more air than
+       a network name needs, and the heading gives the width to the station
+       name instead. */
+    padding-left: 3px;
+    padding-right: 3px;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  /* Rows are one line each, so the space two lines used to take is given
+     back as breathing room between them — the panel is read at a glance
+     from across a room, and rows packed tight are what make it hard to
+     track one across its columns. */
+  /* Rows are one line each, so the space the second line used to take is
+     given back as breathing room between them.
+
+     As margin, not padding. Padding sits *inside* the box, so once a row
+     can be inverted the gap inverts with it and two urgent rows meet in a
+     continuous black band — the highlight stops reading as one row. Margin
+     keeps the gap outside the highlight, so an inverted row is a discrete
+     block with white either side of it whatever its neighbours are. */
+  .row-line {
+    margin-top: 0.14em;
+    margin-bottom: 0.14em;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    /* The highlight's inset, carried by every row so that becoming urgent
+       changes a row's colour and nothing else. On an ordinary row it is
+       invisible; on an urgent one it keeps the glyphs off the black edge. */
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+  }
+  /* The clock is fixed width and never gives way. Without this the flex row
+     squeezes it like any other text child, and a long destination pushes
+     the digits into the badge beside them — the destination is what should
+     yield, since a half-read station name is still useful and a half-read
+     departure time is not. */
+  .row-time {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    /* Separates the digits from the destination clipping into them. */
+    /* Negative, against the row's own 7px `gap--small`. The gap is right
+       between the badge and the destination, where two blocks of text
+       need separating, but wasteful before a right-aligned clock that
+       already has its own whitespace built in. Pulling 3px back goes to
+       the destination, which is the only element short of room. */
+    margin-left: -3px;
+    /* The size comes from the framework class on the element
+       (`value--xsmall`, 20px), not from here. An `em` rule was tried and
+       is a no-op: `font-size: 1em` computes against the inherited size,
+       so the class always won and the clock stayed the smaller of the two.
+
+       The clock is the row's primary fact — a rider scans times first — so
+       it takes the larger step, against the destination's 16px. The next
+       step up (`title--base`, 26px) was tried and is too much: it crushed
+       a split subway destination to three characters and pushed the last
+       row of each card out of its box. */
+    /* The board's face is a bitmap with a real bold cut, so this picks a
+       drawn weight rather than synthesising one — which on a 1-bit panel
+       is the difference between heavier and blurred. */
+    font-weight: bold;
+    /* Pulls the digits together without touching their size. Tabular
+       figures are spaced for columns of numbers, which is wider than a
+       clock needs. */
+    letter-spacing: -0.03em;
+  }
+  /* The departure text was thin enough to read as grey from across the
+     room. The face has a bold cut, so this picks a drawn weight rather
+     than synthesising one.
+
+     The destination is deliberately left at the normal weight. Bold glyphs
+     are wider, and the destination is the one element on the row with no
+     width to spare — bolding it cost three characters in a split subway
+     column, where "Coney Island-Stillwell Av" was already down to eight.
+     It is also the row's least urgent element: the badge says which train
+     and the clock says when, both of which now carry the weight. */
+  .row-badge,
+  .card-name,
+  .type-tag {
+    font-weight: bold;
+  }
+  /* A subway card splits into two direction columns, so its rows get half
+     the width every other card's do — 122px against 253px. Badge, clock and
+     gaps take 78px of that, leaving 44px for the destination: six
+     characters, which renders "Coney Island-Stillwell Av" as "Cone…".
+
+     The clock was dropped a step on split cards to buy that width back,
+     first to 0.75em and then to 0.92em. Both were wrong for the same
+     reason: a panel read from across a room has one element that must
+     never shrink, and it is the time. Two columns of clocks at different
+     sizes also read as a mistake rather than as a hierarchy.
+
+     So every time on the board is the same size, and the destination is
+     what gives way — it clips, which a station name survives, where a
+     half-size clock is simply harder to read. */
+  /* An urgent row is inverted whole, which is the strongest mark a 1-bit
+     panel has and the only one that reads at row scale.
+
+     `filter: invert(1)` flips what is painted, and nothing is painted
+     behind a transparent row — so the row needs an explicit white ground
+     to invert *into* black. Without it the text flips to white and
+     disappears against the page.
+
+     It adds no geometry of its own. The inset was once a negative margin
+     plus matching padding, so the highlight could reach the card edge
+     without narrowing the row — but a negative margin pulls the row
+     outside its parent, and the parent clips, so the left edge of every
+     highlight was shaved off. Worse, only urgent rows moved, so a
+     highlight visibly shifted its own row relative to its neighbours.
+
+     Every row carries the inset instead, urgent or not: see `.row-line`.
+     An urgent row then differs from an ordinary one in exactly one way,
+     which is the colour. */
+  .row-line--urgent {
+    background: #fff;
+  }
+  /* The board's own wrapper, deliberately not a `.view`.
+     
+     trmnlp already wraps this markup in `<div class="view view--full">`,
+     and nesting a second `.view` inside it is why the footer fell off the
+     panel: `.view` is a column flex whose height comes from
+     `.view--full`, the inner one had no such class, so it grew to fit its
+     content and pushed the `.title_bar` below the screen.
+     
+     It cannot borrow `.flex--col` either — that sets `align-items:
+     center`, which collapses the layout's width and renders a blank
+     board. Its own rule, then: fill the height it is given, stack the
+     layout above the title bar, and let the layout take what is left. */
+  .board-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* A flex item defaults to `min-height: auto`, which floors it at its
+       content's height. In a mashup that floor is taller than the cell:
+       `.mashup-cell` is a flex box with `min-height: 0` and
+       `overflow: hidden`, so an overgrown child is silently clipped at the
+       bottom — which is where the footer lives. `height: 100%` alone does
+       not help, because the content floor wins over it.
+
+       It costs the full-screen layout nothing: there the content already
+       fits, so the floor never binds. */
+    min-height: 0;
+  }
+  .board-root > .layout {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  /* The empty state is a line of its own, not a row.
+     
+     It was a `<span>` carrying `.row-dest` and `w--full`, which centred
+     nothing: width does not apply to an inline element, so the span was
+     only as wide as its text and `text-align` had no room to work in.
+     `.row-dest`'s clipping rules are for a flex row and did not belong
+     here either. A block element sized by its parent is all it needs.
+     
+     Sized to match a destination, since that is what it stands in for. */
+  .row-empty {
+    font-size: calc(0.86em * var(--dest-scale, 1));
+    /* Stand off the card heading by the same distance a direction
+       heading does. Without it the line sits flush against the rule and
+       reads as part of the title rather than as the card's content —
+       every other card has a heading in that space. */
+    margin-top: 0.35em;
+  }
+  /* The destination takes whatever the badge and the clock leave, and clips
+     rather than wrapping: a wrapped name would make its row taller than its
+     neighbours, and on a fixed panel a name cut mid-word still reads. */
+  .row-dest {
+    /* Every element on a row draws in the same face.
+       `screen--fonts-trmnl` maps the framework's classes onto bitmap
+       faces, and they are not interchangeable: `.description` is TRMNL12
+       where `.label` and `.title--small` are TRMNL16. Both compute to
+       16px, so the difference does not show in the CSS — it shows on the
+       panel, as a bus or ferry destination drawn visibly larger than the
+       badge beside it. The destination carries `.title--small` now, like
+       the rest of the row.
+
+       `--dest-scale` is set inline from the board's `ds`, so the user's
+       choice reaches a stylesheet that cannot see custom fields. Defaults
+       to 1 when the board omits it, which it does at the default size. */
+    /* `title--small` (16px) against the clock's `value--xsmall` (20px);
+       both are the same bitmap face, so only the size differs. The
+       destination is supporting detail — the badge says which train and
+       the clock says when — and it is the only element whose useful
+       length varies by station, so the size it gives up buys more of the
+       name.
+
+       The user's scale multiplies whatever the class sets. */
+    /* A step under the row. The framework has no class below
+       `title--small` — every size variable bottoms out at 16px — so the
+       step is relative, which also keeps it multiplying by the user's
+       own `--dest-scale`. */
+    font-size: calc(0.86em * var(--dest-scale, 1));
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+  }
+  /* A row badge is a route name — a railroad branch, a bus route — and some
+     are long: "City Terminal Zone" is LIRR's name for Penn/Atlantic/Grand
+     Central service. Unbounded it wraps to a second line and makes that one
+     row taller than its neighbours, which is what uniform row height exists
+     to prevent: a column you can scan down.
+
+     So a badge never wraps. It keeps its own width where it fits and
+     ellipsizes where it does not, and the destination beside it gives way
+     first — the route is what a rider scans for. */
+  .row-badge {
+    /* Each badge is as wide as its own route name and no wider.
+       `min-width` is deliberately absent: a floor of 4.5ch padded every
+       short name out to the same box, so "M42" and "SIM8" were
+       indistinguishable rectangles and a bus column read as one repeated
+       shape. The floor existed to stop "M42" being truncated to "M…" —
+       which nothing does any more, since the row clips rather than
+       ellipsizing and a clipped "M4" still reads as the M42. */
+    width: max-content;
+    /* `max-content` sets the width; this stops the flex row taking it back.
+       Without it a narrow bus column squeezed "M42" and "SIM8" to a single
+       letter — the share below is a *ceiling* for long railroad branches,
+       not a target, and flex was treating it as the latter. A route name
+       is the one thing on the row that must survive intact: "M4" still
+       reads as the M42, but "M" reads as a different route. */
+    flex-shrink: 0;
+    /* A third of the row. A character count fitted every branch but "City
+       Terminal Zone" and took a fixed slice of a split column, where the
+       destination has least to spare; a share scales with the space the
+       card actually has. */
+    max-width: 33%;
+    /* A railroad, bus or ferry badge sits in the same column as a subway
+       bullet and must read as the same kind of mark, at the same size.
+       The framework's `.label` padding made it visibly taller, so the box
+       is pinned to the bullet's own 1.35em.
+
+       The type is *not* stepped down. It was at 0.86em, which made a bus
+       or ferry row's text visibly smaller than a train's — the rows then
+       looked like different kinds of information rather than the same
+       information from different networks. */
+    height: 1.35em;
+    padding-top: 0;
+    padding-bottom: 0;
+    /* `.label--filled` pads 5px either side, which is tuned for a label
+       standing alone. In a row it is 10px taken from the destination, the
+       one element with none to spare — and a route name needs only enough
+       air to stay off the fill's edge. */
+    padding-left: 3px;
+    padding-right: 3px;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+  }
+</style>
+
+{% comment %}
+  The board: three columns, each holding one or two cards.
+
+  Slots map to the grid in fixed positions — 1/2 left, 3/4 middle, 5/6 right —
+  so a station stays where the user put it. A column with one active slot gives
+  that card the full height; with two, they split it with a rule between.
+
+  Rows are trimmed by the framework's Content Limiter rather than by the
+  backend: `data-content-limiter` on a `.content` element measures the rendered
+  height in the browser and drops what does not fit. The backend therefore
+  sends more rows than any card can show (16) and the panel decides, so a card
+  alone in its column fills the space without the server knowing the layout.
+  The explicit `data-content-max-height` is what makes the cut land between
+  rows instead of through one.
+
+  Row shape, matching the dashboard it replaces:
+    [badge] [destination, clipped] [time, right-aligned]
+
+  Rows are data tuples, not objects, to stay inside TRMNL's 5KB payload cap:
+    r[0] badge   r[1] destination   r[2] time   r[3] 1 when urgent
+{% endcomment %}
+
+{% comment %}
+  Heights the Content Limiter trims to, measured against the rendered panel.
+
+  Scaled by device: a TRMNL X is 1404px tall against the OG's 480, so a budget
+  tuned for one leaves most of the other empty. `trmnl.device.height` is what
+  the platform reports, so the budget follows the hardware rather than being
+  guessed per model.
+
+  The ratios come from the OG measurement — 374 of 480 usable for a full card,
+  163 for one sharing a column — applied to whatever height the device has.
+  A percentage point either way decides whether the last row lands whole or
+  leaves a fragment, so these were tuned against the render rather than
+  reasoned about.
+{% endcomment %}
+{% assign device_height = trmnl.device.height | default: 480 %}
+
+{% comment %}
+  A card's budget is a whole number of rows, not a percentage.
+
+  It was 72% and 34%, tuned against a render — and a tuned percentage goes
+  stale the moment the type changes, which it did several times: the clock
+  moved to `value--xsmall`, badges came back to full size, the row gap
+  moved from padding to margin. The budget then no longer divided by the
+  row height, the Content Limiter rendered the leftover as a part-row, and
+  the last entry on a card came out visibly smaller than the rest.
+
+  `row_pitch` is the tallest thing in a row (the 20px clock, against a
+  21.6px badge box) plus the row's own padding and margin, rounded up. The
+  budget is the largest multiple of it that fits, so the cut always lands
+  between rows. Change a row's type size and this follows; it is the one
+  number to keep in step.
+{% endcomment %}
+{% assign row_pitch = 30 %}
+{% assign full_rows = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_height = full_rows | times: row_pitch %}
+{% assign split_height = split_rows | times: row_pitch %}
+
+{% comment %}
+  Two things the first renders exposed.
+
+  **A badge must not wrap.** A railroad branch name runs onto a second line
+  otherwise, doubling the row height and pushing the card over its budget. A
+  one-line clamp keeps every row identical.
+
+  **A badge must not be squeezed either.** The clamp alone let a long
+  destination crush the badge — the bus card rendered a four-character "Q101"
+  as "Q1…" while fifteen-character railroad badges beside it were fine, because
+  "STEINWAY via STEINWAY ST" was taking the width.
+
+  The fix is simply to leave the badge alone: no clamp, no width. `data-clamp`
+  was what broke it — the clamp engine measures a badge the flex row has
+  already squeezed and truncates to fit that squeezed box, so a long
+  destination two elements away decided how much of "Q101" survived.
+
+  Without it the badge sizes to its own text and the destination gives way
+  instead, which is the right priority: the route is what a rider scans for.
+  A fixed width was also tried and is wrong in both directions — far too wide
+  for a one-character subway bullet, too narrow for "Port Washington".
+
+  **A row is one line: badge, destination, time.** It was two for a while,
+  on the measurement that a split subway column (~123px) left only 43px for
+  the destination once a 1.7em bullet, the clock and the gaps had taken
+  theirs — six characters, against names like "Coney Island-Stillwell Av".
+
+  The bullet is 1.35em now, which returns most of that width, and one line
+  per row buys back the vertical space the second line was spending. The
+  destination clips rather than wrapping: a wrapped name would make its row
+  taller than its neighbours, and on a fixed panel a name cut mid-word still
+  reads.
+
+  **The time is set at `title--small`, not `value--*`.** The smallest value
+  size is 20px and took about 55px of a 90px direction column — well over half
+  the width for a clock. At 16px it matches the destination beside it and
+  leaves room for the destination to be shown at all.
+
+  **`.content` caps itself at a prose-reading width.** The framework sets
+  `max-width: var(--richtext-content-max-width)` on it, which is right for
+  paragraphs and wrong for a departure column: it left a full-width card using
+  169px of its 253, and squeezed the subway columns to 87px. `w--full`
+  overrides it.
+{% endcomment %}
+
+{% comment %}
+  Split a route id into the character shown and the shape that shows it.
+  "7X" is the 7 running express, drawn as a diamond; "7" is a circle.
+{% endcomment %}
+{% comment %}
+  How many of the three columns hold a card.
+
+  The grid is sized to that rather than fixed at three, so a board using two
+  columns fills the panel instead of leaving a third of it blank. Two columns
+  go from ~253px each to ~390px — and width is the thing destinations have
+  been short of all along, which is why three is the maximum in the first
+  place.
+
+  Slots keep their columns: 1/2 left, 3/4 middle, 5/6 right. Only the empty
+  columns are dropped, so a card never moves because a different card was
+  added elsewhere.
+{% endcomment %}
+{% assign used_columns = 0 %}
+{% for column_index in (0..2) %}
+  {% assign first = column_index | times: 2 | plus: 1 %}
+  {% assign second = first | plus: 1 %}
+  {% for card in c %}
+    {% if card.s == first or card.s == second %}
+      {% assign used_columns = used_columns | plus: 1 %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+{% if used_columns == 0 %}{% assign used_columns = 1 %}{% endif %}
+
+{% comment %}
+  Not a `.view` — trmnlp already wraps this markup in
+  `<div class="view view--full">`, and nesting a second one inside it was
+  why the footer fell off the bottom of the panel.
+
+  `.view` is a column flex whose height comes from `.view--full`
+  (`height: var(--full-h)`). The outer one has that class and is sized;
+  ours did not, so it grew to fit its content, `.layout` expanded with it,
+  and the `.title_bar` after it was pushed below the screen.
+
+  A plain wrapper is all that is needed here: it exists only to carry
+  `--dest-scale`, and the layout and title bar beneath it are already the
+  two children the framework expects.
+{% endcomment %}
+<div class="board-root"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
+  <div class="layout">
+    <div class="grid grid--cols-{{ used_columns }} h--full">
+
+      {% comment %}
+        Left column takes slots 1 and 2, middle 3 and 4, right 5 and 6.
+
+        Compared as numbers rather than by splitting a string: the backend
+        sends `s` as a number, and a split string yields strings, so `1 == "1"`
+        is false in Liquid and the whole board renders blank.
+      {% endcomment %}
+      {% for column_index in (0..2) %}
+        {% assign top_slot = column_index | times: 2 | plus: 1 %}
+        {% assign bottom_slot = top_slot | plus: 1 %}
+
+        {% comment %}
+          How many of this column's two slots the user configured. A slot left
+          Off never reaches the board, so a column may hold two cards, one, or
+          none — and a lone card takes the column's whole height.
+        {% endcomment %}
+        {% assign card_count = 0 %}
+        {% for card in c %}
+          {% if card.s == top_slot or card.s == bottom_slot %}
+            {% assign card_count = card_count | plus: 1 %}
+          {% endif %}
+        {% endfor %}
+
+        {% comment %}
+          An empty column is skipped entirely rather than rendered blank —
+          otherwise the grid would reserve a track for it and the reflow
+          above would buy nothing.
+        {% endcomment %}
+        {% if card_count > 0 %}
+        <div class="col gap--small h--full{% if card_count < 2 %} col--start{% endif %}">
+          {% for card in c %}
+            {% if card.s == top_slot or card.s == bottom_slot %}
+              {% comment %}
+                Each card in a split column claims half the height whatever it
+                holds. Without this the divider lands wherever the top card
+                happens to end — a two-row bus card put it a quarter of the
+                way down and gave the card below three quarters of the column,
+                so two boards with the same layout looked different.
+
+                The column drops `col--start` when it is split: that sets
+                `justify-content: flex-start`, which packs children to the top
+                and overrides the even share. A single-card column keeps it,
+                so a lone card still sits at the top rather than centring.
+              {% endcomment %}
+              <div class="{% if card_count > 1 %}grow basis--0{% endif %} w--full">
+
+                {% comment %} A rule between two cards sharing a column. {% endcomment %}
+                {% if card.s == bottom_slot and card_count > 1 %}
+                  <div class="border--h-black w--full"></div>
+                {% endif %}
+
+                {% comment %}
+                  Card heading. Subway cards carry route bullets; the others
+                  are named by their station alone.
+                {% endcomment %}
+                {% comment %}
+                  Station name first, bullets after.
+
+                  Leading with the bullets crushed "Times Sq-42 St" to "Ti..."
+                  — the name is what identifies a card, so it takes the space.
+
+                  The bullets were capped at four, from when they were 1.7em
+                  and a twelve-route complex wrapped onto a second line,
+                  making one heading taller than the rest. At 1.35em six fit,
+                  but any fixed cap is the wrong shape: Times Square has
+                  twelve, so a cap silently drops routes the rows below are
+                  still showing, and the heading contradicts its own card.
+
+                  So the strip takes the width the name leaves and clips
+                  there. What fits is shown, nothing is dropped at a number
+                  that no longer matches the type size, and the row stays one
+                  line tall because the strip cannot wrap.
+                {% endcomment %}
+                <div class="flex flex--row flex--center-y gap--small">
+                  <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
+                  {% if card.b %}
+                    <div class="bullet-strip{% if card.y != "subway" %} bullet-strip--tag{% endif %}">
+                    {% for route in card.b %}
+                      {% assign is_express = false %}
+                      {% assign glyph = route %}
+                      {% if route.size > 1 and route contains "X" %}
+                        {% assign stripped = route | remove_last: "X" %}
+                        {% if stripped.size == 1 %}
+                          {% assign is_express = true %}
+                          {% assign glyph = stripped %}
+                        {% endif %}
+                      {% endif %}
+                  {% comment %}
+                        A bullet holds one or two characters. One covers every
+                        subway route and the shuttles; two covers SI, the
+                        Staten Island Railway, which the R211 trains now
+                        running the line sign as a circular SI bullet.
+
+                        Subway cards only: the shape means "a subway line",
+                        so it is scoped by card type rather than by length.
+                        Three or more characters is a bus route or a railroad
+                        branch, which stays a pill — "Babylon" in a circle is
+                        unreadable.
+                      {% endcomment %}
+                      {% if card.y == "subway" and glyph.size <= 2 %}
+                        <span class="label label--small md:label--base label--filled bullet{% if glyph.size == 2 %} bullet--pair{% endif %}{% if is_express %} bullet--express{% endif %}"><span>{{ glyph }}</span></span>
+                      {% else %}
+                        <span class="label label--small md:label--base label--filled type-tag">{{ glyph }}</span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                  
+                  {% endif %}
+                </div>
+                <div class="border--h-40 w--full"></div>
+
+                {% if card.e %}
+                  {% comment %}
+                    A failed fetch, reported in place. Distinct from a card
+                    with nothing due — that is a fact about the service, not a
+                    fault, and says so below instead.
+                  {% endcomment %}
+                  <span class="label label--small label--outline">Unavailable</span>
+                  <span class="description" data-clamp="2">{{ card.e }}</span>
+
+                {% else %}
+                  {% if card_count == 1 %}
+                    {% assign card_height = full_height %}
+                  {% else %}
+                    {% assign card_height = split_height %}
+                  {% endif %}
+
+                  {% comment %}
+                    A card's columns sit **side by side**, not stacked.
+
+                    A subway card has two — one per direction — and stacking
+                    them put the second inside the same height budget as the
+                    first, so the limiter cut it off entirely and the card
+                    looked like a terminal that only ran one way. Bus cards
+                    have one column per stop ID, which is one direction each,
+                    so the same rule applies to them.
+
+                    Each gets `grow basis--0` so they divide the card evenly
+                    whatever they hold, and its own limiter so a busy
+                    direction cannot crowd out a quiet one. The row carries
+                    `flex--top`, without which the shorter column centres
+                    itself vertically and the two headings no longer line up.
+                  {% endcomment %}
+
+                  <div class="flex flex--row gap--small w--full flex--top">
+                    {% comment %}
+                      When every departure in a column goes to the same place,
+                      the destination repeats down the column and tells the
+                      rider nothing — every northbound 7 at Vernon Blvd ends
+                      at Flushing-Main St. Dropping it matters here because
+                      two side-by-side columns leave about 40px for a
+                      destination, which is unreadable, while the badge and
+                      time are what a rider actually needs.
+                    {% endcomment %}
+                    {% for col in card.k %}
+                    <div class="grow basis--0 content w--full"
+                         data-content-limiter="true"
+                         data-content-max-height="{{ card_height }}">
+                      {% if col.h != "" %}
+                        <div class="flex flex--row w--full">
+                          <span class="label label--small md:label--base label--underline">{{ col.h }}</span>
+                        </div>
+                      {% endif %}
+
+                      {% for r in col.r %}
+                        {% comment %}
+                          Every row keeps its own destination.
+
+                          An earlier version hoisted it into the column
+                          heading when a column's departures all shared one,
+                          which is wrong for this network: subway lines
+                          branch, and a stop usually carries several routes.
+                          Southbound at Jay St-MetroTech is A, C and F with
+                          five distinct terminals — Euclid Av, Lefferts Blvd,
+                          Church Av, Far Rockaway, Coney Island — and naming
+                          one of them above the column would tell a rider to
+                          board the wrong train. Coney Island-Stillwell is a
+                          single stop ID carrying D, F, N and Q.
+
+                          The only destination worth suppressing is one that
+                          repeats its own badge, which is a railroad habit:
+                          a branch's trains usually end at the branch's
+                          namesake, so "Hempstead | Hempstead" says it twice.
+                          A destination that merely extends the badge is
+                          shortened to the part that differs — "New Haven"
+                          beside "New Haven-State St" becomes "State St" —
+                          which also stops the badge wrapping onto two lines.
+                        {% endcomment %}
+                        {% comment %}
+                          A subway route is one character — or two, for SI —
+                          so it gets a bullet: circle for local, diamond for
+                          express, with the feed's X suffix stripped since the
+                          shape carries it.
+
+                          **Subway cards only.** The shape itself means "a
+                          subway line", so it has to be scoped by card type
+                          and not by glyph length. Ferry routes are two
+                          characters — AS, ER, SG — and were being drawn as
+                          subway bullets; bus routes escaped only by being
+                          four characters long. A named route stays a pill:
+                          "Babylon" in a circle is unreadable.
+                        {% endcomment %}
+                        {% assign is_express = false %}
+                        {% assign glyph = r[0] %}
+                        {% if r[0].size > 1 and r[0] contains "X" %}
+                          {% assign stripped = r[0] | remove_last: "X" %}
+                          {% if stripped.size == 1 %}
+                            {% assign is_express = true %}
+                            {% assign glyph = stripped %}
+                          {% endif %}
+                        {% endif %}
+                        {% if card.y == "subway" and glyph.size <= 2 %}
+                          {% assign bullet_class = "bullet" %}
+                          {% if glyph.size == 2 %}
+                            {% assign bullet_class = "bullet bullet--pair" %}
+                          {% endif %}
+                          {% if is_express %}
+                            {% assign bullet_class = "bullet bullet--express" %}
+                          {% endif %}
+                        {% else %}
+                          {% assign bullet_class = "" %}
+                        {% endif %}
+                        {% assign destination = r[1] %}
+                        {% if destination == r[0] %}
+                          {% assign destination = "" %}
+                        {% else %}
+                          {% assign badge_prefix = r[0] | append: "-" %}
+                          {% if destination contains badge_prefix %}
+                            {% assign destination = destination | remove_first: badge_prefix %}
+                          {% endif %}
+                        {% endif %}
+                        {% comment %}
+                          Urgent departures — the ones you must leave for now
+                          — invert the whole row; everything else is drawn
+                          the same way, with a filled mark.
+
+                          Marking urgency on the badge alone was tried twice,
+                          in both directions, and neither worked: an outlined
+                          badge among filled ones reads as a different kind
+                          of route rather than as a more pressing departure,
+                          and the mark is the smallest thing on the row.
+                          Inverting the row puts the emphasis on the row,
+                          which is what the rider is actually reading.
+
+                          A badge is therefore always filled, on every
+                          network — the shape says "route", not "urgency".
+                        {% endcomment %}
+                        {% assign badge_fill = "label--filled" %}
+
+                        {% comment %}
+                          `‹` toward the city, `›` away from it, nothing when
+                          the direction is unknown — a train terminating here
+                          has none, and no other transit type reports one.
+                          Single-angle quotes rather than ← →, which the
+                          panel's face draws inconsistently at this size.
+                        {% endcomment %}
+                        {% assign arrow = "" %}
+                        {% if r[4] == 1 %}
+                          {% assign arrow = "‹" %}
+                        {% elsif r[4] == -1 %}
+                          {% assign arrow = "›" %}
+                        {% endif %}
+
+                        {% comment %}
+                          Every row is one line: badge, destination, time.
+
+                          A split subway column was two lines until now, on
+                          the measurement that ~123px cannot carry all three
+                          — and it could not, at a 1.7em bullet. The bullet
+                          is 1.35em now, which returns the width the
+                          destination needed, and one line per row buys back
+                          the vertical space two lines were spending.
+
+                          The destination clips rather than wrapping. A name
+                          cut mid-word still reads on a fixed panel, and a
+                          wrapped one would make its row taller than its
+                          neighbours — which is what uniform row height
+                          exists to prevent.
+                        {% endcomment %}
+                        <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small w--full">
+                          <span class="label label--small md:label--base {{ badge_fill }} {{ bullet_class }}{% if bullet_class == "" %} row-badge{% endif %}">{% if bullet_class != "" %}<span>{{ glyph }}</span>{% else %}{{ r[0] }}{% endif %}</span>
+                          {% comment %}
+                            The arrow stands on its own when the destination
+                            was dropped as redundant — a train to its
+                            branch's namesake still has a direction, and
+                            losing it there would make the rows that most
+                            need it the ones without it.
+                          {% endcomment %}
+                          <span class="row-dest title title--small grow">{% if arrow != "" %}{{ arrow }}&nbsp;{% endif %}{{ destination }}</span>
+                          <span class="row-time value value--xsmall">{{ r[2] }}</span>
+                        </div>
+                      {% endfor %}
+
+                      {% assign row_count = col.r | size %}
+                      {% if row_count == 0 %}
+                        {% comment %}
+                          Empty is not an error: the feed answered and had
+                          nothing due. Saying so is the whole point — the app
+                          does not guess whether service ended, the stop is
+                          peak-only, or everything is inside the walk time.
+                        {% endcomment %}
+                        <div class="row-empty title title--small text--center">No upcoming departures</div>
+                      {% endif %}
+                    </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <div class="title_bar">
+    {% comment %}
+        The data's age, in New York time. A panel refreshes on an interval
+        and an e-ink screen holds its last image through a failure, so
+        without this there is no way to tell a quiet board from a frozen
+        one. Formatted by the Worker, because Liquid cannot convert a
+        timezone and the panel runs wherever the user is.
+      {% endcomment %}
+      {% comment %}
+        The footer is always exactly two items: a label on the left and the
+        timestamp on the right. The demo notice is folded into the label
+        rather than added as a third, because a third item has nowhere to
+        go — the stamp takes the right edge, so anything between them is
+        squeezed, and at a larger ui-scale all three collided into one
+        unreadable line.
+
+        The backend substitutes a demo board when nothing is configured, so
+        the panel must say whose stations these are: without it a new
+        installer sees Times Square and reasonably assumes their own form
+        took effect.
+      {% endcomment %}
+      {% if d %}
+        <span class="title footer-label">Example board · choose your stations in settings</span>
+      {% else %}
+        {% comment %}
+          Two words, not four bullets and not the networks spelled out.
+          "NYC Subway, Bus, Rail, Ferry" was 28 characters of a bar that
+          also holds a timestamp, and collided with it at a larger
+          ui-scale; the bullets that replaced it read as a fifth row of
+          badges rather than as a caption. The name of the board is what
+          the bar is for, and `.footer-label` already clips it rather
+          than pushing the stamp off the panel.
+        {% endcomment %}
+        <span class="title footer-label">NYC Transit</span>
+      {% endif %}
+      {% if a %}
+        <span class="title footer-stamp">Last updated: {{ a }}</span>
+      {% endif %}
+  </div>
+</div>

@@ -3,8 +3,15 @@
  *
  * TRMNL's Liquid has no partials — `{% render %}` and `{% include %}` both
  * fail with "Template not found", and they fail *silently at render time*
- * rather than breaking the build. So the display rules cannot be extracted:
- * every layout reproduces them in markup, and the copies drift.
+ * rather than breaking the build. So the display rules cannot be extracted
+ * at render time: every layout must reproduce them in markup, and the copies
+ * drift.
+ *
+ * What the platform forces is the *duplication*, not the hand-maintenance of
+ * it. The shared CSS is assembled before the files are pushed, by
+ * `scripts/buildLayouts.mjs` — see the last suite in this file. The rules
+ * written in markup are still four copies, and the tests below are what
+ * holds those together.
  *
  * Two failure modes, both of which have already shipped here:
  *
@@ -24,6 +31,7 @@
 import { test, describe, before } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import {
@@ -862,4 +870,36 @@ describe("the preview is pinned to the device's own profile", () => {
       }
     });
   }
+});
+
+/**
+ * The generated layouts match their parts.
+ *
+ * The CSS these four files carry is near enough identical — the three
+ * mashups differed in exactly two values, the view name and the cell's
+ * width and height — so it is assembled by `scripts/buildLayouts.mjs`
+ * rather than typed four times. The files under `plugin/src` stay committed
+ * because `trmnlp push` uploads them, which means they can also be edited
+ * by hand, which is the one thing that must not happen quietly: an edit
+ * there is erased by the next generate.
+ *
+ * So the generator runs in `--check` mode here. It writes nothing and fails
+ * when a generated file has drifted from the parts it was built from.
+ */
+describe("the layouts are generated, not hand-maintained", () => {
+  test("every layout matches the parts it is built from", () => {
+    const result = spawnSync(
+      process.execPath,
+      [resolve(root, "scripts/buildLayouts.mjs"), "--check"],
+      { encoding: "utf8" }
+    );
+
+    assert.equal(
+      result.status,
+      0,
+      `A layout under plugin/src has drifted from plugin/parts.\n` +
+        `Change the part, not the generated file, then run ` +
+        `\`npm run gen:layouts\`.\n\n${result.stderr}${result.stdout}`
+    );
+  });
 });
