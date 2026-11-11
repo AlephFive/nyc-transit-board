@@ -653,22 +653,18 @@
 {% assign device_height = trmnl.device.height | default: 480 %}
 {% assign row_pitch = 30 %}
 {% comment %}
-  Two budgets, chosen per card as full.liquid does: a card alone in the
-  cell may use all of it, two cards get half each. With one budget for
-  both, the first card's limiter is told it may fill the cell — so it
-  does, and the second is left with only its heading.
+  One budget, because a quadrant shows one card.
 
-  Halved against half_vertical's 72/34, because a quadrant is half the
-  height of a full-height column.
+  A quadrant is a quarter of the screen — half the width and half the
+  height of the full board — so it holds slot 1 alone. half_vertical is
+  a full-height column and stacks two, which is why it needs a split
+  budget and `grow basis--0`; here the single card simply takes the
+  cell, and 34% of the device height is what that cell is.
 {% endcomment %}
 {% assign full_rows = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
-{% assign split_rows = device_height | times: 17 | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
-{% assign split_height = split_rows | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
-    {% assign card_count = 0 %}
-    {% for card in c %}{% if card.s == 1 or card.s == 2 %}{% assign card_count = card_count | plus: 1 %}{% endif %}{% endfor %}
-    <div class="col gap--small h--full{% if card_count < 2 %} col--start{% endif %}">
+            <div class="col gap--small h--full col--start">
 {% comment %}
   One card.
   ---------------------------------------------------------------
@@ -680,9 +676,9 @@
   One station, read at a glance, is what that space is actually for.
 {% endcomment %}
       {% for card in c %}
-        {% if card.s == 1 or card.s == 2 %}
-          {% if card_count == 1 %}{% assign stack_height = full_height %}{% else %}{% assign stack_height = split_height %}{% endif %}
-        <div class="{% if card_count > 1 %}grow basis--0{% endif %} w--full">
+        {% if card.s == 1 %}
+          {% assign stack_height = full_height %}
+        <div class="w--full">
 
         <div class="flex flex--row flex--center-y gap--small">
           <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
