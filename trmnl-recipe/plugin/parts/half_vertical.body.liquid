@@ -568,7 +568,8 @@
   fixed gap and title-bar height would not. Floored to whole rows so
   the cut lands between rows rather than through one.
 {% endcomment %}
-{% part: panel-height %}
+{% assign device_height = trmnl.device.height | default: 480 %}
+{% assign row_pitch = 30 %}
 {% comment %}
   Two budgets, chosen per card, exactly as full.liquid does at its own
   card-count branch: a card alone in the column may use the
@@ -577,8 +578,8 @@
   the second is left with only its heading, which is what the panel
   showed.
 {% endcomment %}
-{% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
-{% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_rows = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
 {% assign split_height = split_rows | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
