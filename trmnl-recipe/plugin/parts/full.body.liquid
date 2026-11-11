@@ -504,13 +504,11 @@
   a part-row, and the last entry on a card comes out visibly smaller than
   the rest.
 
-  `row_pitch` is the tallest thing in a row (the 20px clock, against a
-  21.6px badge box) plus the row's own padding and margin, rounded up. The
-  budget is the largest multiple of it that fits, so the cut always lands
-  between rows. Change a row's type size and this follows; it is the one
-  number to keep in step.
+  The budget is the largest whole multiple of `row_pitch` that fits, so the
+  cut always lands between rows. `row_pitch` comes from `panel-height`,
+  which carries it per device because the row styles are in `em` and a row
+  is a different number of CSS pixels on each.
 {% endcomment %}
-{% assign row_pitch = 30 %}
 {% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
 {% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}

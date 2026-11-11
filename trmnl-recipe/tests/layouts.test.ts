@@ -1033,3 +1033,49 @@ describe("the row budget converts device pixels to CSS pixels", () => {
     }
   });
 });
+
+/**
+ * Row pitch is per device, because the row styles are written in `em`.
+ *
+ * A row's height follows the base font size, so it is a different number
+ * of CSS pixels on each device — measured at 30 on an OG and 24 on a
+ * TRMNL X, whose larger device pixels divide down to smaller CSS ones. A
+ * single constant is wrong on one device by construction: at 30 on an X
+ * the budget bought four fewer rows than it paid for, and a card stopped
+ * two thirds of the way down its half-column.
+ */
+describe("row pitch follows the device", () => {
+  for (const name of LAYOUTS) {
+    test(`${name} takes row_pitch from the shared part`, () => {
+      const liquid = source(name);
+
+      // Exactly one assignment, inside the per-device case.
+      const assignments = liquid.match(/\{%\s*assign row_pitch\s*=/g) ?? [];
+      assert.equal(
+        assignments.length,
+        2,
+        `${name} should assign row_pitch once per device branch, so a ` +
+          `layout cannot shadow the shared value with its own constant`
+      );
+
+      assert.match(
+        liquid,
+        /when 1404\s*%\}\s*\{%\s*assign panel_height = 780\s*%\}\s*\{%\s*assign row_pitch = 24/,
+        `${name} should pair the TRMNL X's 780 CSS px with its 24px row`
+      );
+    });
+
+    test(`${name} assigns row_pitch before using it`, () => {
+      const liquid = source(name);
+      const assigned = liquid.search(/\{%\s*assign row_pitch\s*=/);
+      const used = liquid.search(/divided_by:\s*row_pitch/);
+
+      assert.ok(assigned >= 0 && used >= 0, `${name} should do both`);
+      assert.ok(
+        assigned < used,
+        `${name} uses row_pitch before the part assigns it, which Liquid ` +
+          `resolves to nil and makes every budget zero`
+      );
+    });
+  }
+});

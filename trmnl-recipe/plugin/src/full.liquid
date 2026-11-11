@@ -571,10 +571,28 @@
   whose ratio is 1 and errs towards fewer rows rather than an overrun on one
   that scales.
 {% endcomment %}
+{% comment %}
+  `row_pitch` is the tallest thing in a row plus its padding and margin,
+  which the row styles express in `em` — so it follows the base font size
+  and is a different number of CSS pixels on each device. Measured from a
+  render: 30 on an OG, 24 on a TRMNL X, whose larger device pixels divide
+  down to smaller CSS ones.
+
+  A single constant is therefore wrong on one device by construction. At
+  30 on an X the budget bought four fewer rows than it paid for, and cards
+  stopped two thirds of the way down their half-column.
+
+  Both are per-device, so they live together: a new device is one `when`
+  with its two numbers.
+{% endcomment %}
 {% assign device_height = trmnl.device.height | default: 480 %}
 {% case device_height %}
-  {% when 1404 %}{% assign panel_height = 780 %}
-  {% else %}{% assign panel_height = device_height %}
+  {% when 1404 %}
+    {% assign panel_height = 780 %}
+    {% assign row_pitch = 24 %}
+  {% else %}
+    {% assign panel_height = device_height %}
+    {% assign row_pitch = 30 %}
 {% endcase %}
 
 {% comment %}
@@ -587,13 +605,11 @@
   a part-row, and the last entry on a card comes out visibly smaller than
   the rest.
 
-  `row_pitch` is the tallest thing in a row (the 20px clock, against a
-  21.6px badge box) plus the row's own padding and margin, rounded up. The
-  budget is the largest multiple of it that fits, so the cut always lands
-  between rows. Change a row's type size and this follows; it is the one
-  number to keep in step.
+  The budget is the largest whole multiple of `row_pitch` that fits, so the
+  cut always lands between rows. `row_pitch` comes from `panel-height`,
+  which carries it per device because the row styles are in `em` and a row
+  is a different number of CSS pixels on each.
 {% endcomment %}
-{% assign row_pitch = 30 %}
 {% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
 {% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}

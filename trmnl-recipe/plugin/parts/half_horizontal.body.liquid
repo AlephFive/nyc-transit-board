@@ -587,7 +587,6 @@
   the cut lands between rows rather than through one.
 {% endcomment %}
 {% part: panel-height %}
-{% assign row_pitch = 30 %}
 {% assign rows_fit = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign card_height = rows_fit | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
