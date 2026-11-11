@@ -109,17 +109,16 @@
      `flex-shrink` lets the name win when both cannot fit, and `nowrap`
      keeps the heading one line tall. */
   /* The name is what identifies a card, so it is never crushed below a
-     readable minimum — twelve bullets at Times Square took the heading
-     down to "Times" before this. The strip yields first and clips. */
+     readable minimum. At a complex carrying twelve bullets the strip is
+     what yields, and clips; the name keeps its floor. */
   .card-name {
     min-width: 7ch;
-    /* One line, always. `data-clamp="1"` used to hold this — the framework
-       truncates in JS — and removing it to get rid of the ellipsis took
-       the wrapping guard with it, so "116 St-Columbia University" broke
-       onto a second line and pushed the card's rows down.
-
-       Clipping is the replacement: the name shows as much as fits and
-       stops, which is the same rule the rows follow. */
+    /* One line, always. A name long enough to wrap — "116 St-Columbia
+       University" — would push the card's rows down, so it clips instead:
+       the name shows as much as fits and stops, which is the same rule
+       the rows follow. The framework's own `data-clamp` truncates in JS
+       and brings an ellipsis with it, which costs three characters of the
+       width it is reporting is short. */
     overflow: hidden;
     white-space: nowrap;
     text-overflow: clip;
@@ -148,10 +147,10 @@
        heading. Half is enough for six marks, which is as many as tell a
        rider anything the name has not.
 
-       Kept as a ceiling even though the strip no longer shrinks: without
-       it a twelve-route complex would push the station name out of its
-       own heading entirely, and a card with no name is worse than one
-       with no bullets. */
+       A ceiling matters even though the strip shrinks first: without it
+       a twelve-route complex would push the station name out of its own
+       heading entirely, and a card with no name is worse than one with
+       no bullets. */
     max-width: 50%;
     /* Not `inherit`: that takes the heading row's `gap--small` (7px), which
        is the right distance between the station name and the strip but too
@@ -210,12 +209,10 @@
     justify-content: center;
     box-sizing: border-box;
   }
-  /* Rows are one line each, so the space two lines used to take is given
-     back as breathing room between them — the panel is read at a glance
-     from across a room, and rows packed tight are what make it hard to
-     track one across its columns. */
-  /* Rows are one line each, so the space the second line used to take is
-     given back as breathing room between them.
+  /* Rows are one line each, and the space that buys is given back as
+     breathing room between them — the panel is read at a glance from
+     across a room, and rows packed tight are what make it hard to track
+     one across its columns.
 
      As margin, not padding. Padding sits *inside* the box, so once a row
      can be inverted the gap inverts with it and two urgent rows meet in a
@@ -288,11 +285,10 @@
      gaps take 78px of that, leaving 44px for the destination: six
      characters, which renders "Coney Island-Stillwell Av" as "Cone…".
 
-     The clock was dropped a step on split cards to buy that width back,
-     first to 0.75em and then to 0.92em. Both were wrong for the same
-     reason: a panel read from across a room has one element that must
-     never shrink, and it is the time. Two columns of clocks at different
-     sizes also read as a mistake rather than as a hierarchy.
+     Shrinking the clock on split cards would buy that width back, and is
+     the wrong trade: a panel read from across a room has one element that
+     must never shrink, and it is the time. Two columns of clocks at
+     different sizes also read as a mistake rather than as a hierarchy.
 
      So every time on the board is the same size, and the destination is
      what gives way — it clips, which a station name survives, where a
@@ -498,12 +494,12 @@
 {% comment %}
   A card's budget is a whole number of rows, not a percentage.
 
-  It was 72% and 34%, tuned against a render — and a tuned percentage goes
-  stale the moment the type changes, which it did several times: the clock
-  moved to `value--xsmall`, badges came back to full size, the row gap
-  moved from padding to margin. The budget then no longer divided by the
-  row height, the Content Limiter rendered the leftover as a part-row, and
-  the last entry on a card came out visibly smaller than the rest.
+  A percentage tuned against a render goes stale the moment the type
+  changes — the clock's size, the badge's size, whether the row gap is
+  padding or margin all move it. A budget that does not divide by the row
+  height leaves a remainder, the Content Limiter renders that remainder as
+  a part-row, and the last entry on a card comes out visibly smaller than
+  the rest.
 
   `row_pitch` is the tallest thing in a row (the 20px clock, against a
   21.6px badge box) plus the row's own padding and margin, rounded up. The
@@ -593,16 +589,16 @@
 {% if used_columns == 0 %}{% assign used_columns = 1 %}{% endif %}
 
 {% comment %}
-  Not a `.view` — trmnlp already wraps this markup in
-  `<div class="view view--full">`, and nesting a second one inside it was
-  why the footer fell off the bottom of the panel.
+  Not a `.view` — the renderer already wraps this markup in
+  `<div class="view view--full">`, and a second `.view` nested inside it
+  drops the footer off the bottom of the panel.
 
   `.view` is a column flex whose height comes from `.view--full`
-  (`height: var(--full-h)`). The outer one has that class and is sized;
-  ours did not, so it grew to fit its content, `.layout` expanded with it,
-  and the `.title_bar` after it was pushed below the screen.
+  (`height: var(--full-h)`). Only the outer one carries that class, so an
+  inner one grows to fit its content, `.layout` expands with it, and the
+  `.title_bar` after it is pushed below the screen.
 
-  A plain wrapper is all that is needed here: it exists only to carry
+  A plain wrapper is all that is needed: it exists only to carry
   `--dest-scale`, and the layout and title bar beneath it are already the
   two children the framework expects.
 {% endcomment %}
@@ -778,10 +774,10 @@
                         {% comment %}
                           Every row keeps its own destination.
 
-                          An earlier version hoisted it into the column
-                          heading when a column's departures all shared one,
-                          which is wrong for this network: subway lines
-                          branch, and a stop usually carries several routes.
+                          Hoisting it into the column heading when a
+                          column's departures all share one would be wrong
+                          for this network: subway lines branch, and a stop
+                          usually carries several routes.
                           Southbound at Jay St-MetroTech is A, C and F with
                           five distinct terminals — Euclid Av, Lefferts Blvd,
                           Church Av, Far Rockaway, Coney Island — and naming
@@ -876,11 +872,10 @@
                         {% comment %}
                           Every row is one line: badge, destination, time.
 
-                          A split subway column was two lines until now, on
-                          the measurement that ~123px cannot carry all three
-                          — and it could not, at a 1.7em bullet. The bullet
-                          is 1.35em now, which returns the width the
-                          destination needed, and one line per row buys back
+                          A split subway column is ~123px wide, which at a
+                          1.7em bullet cannot carry all three on one line.
+                          The bullet is 1.35em, which returns the width the
+                          destination needs, and one line per row buys back
                           the vertical space two lines were spending.
 
                           The destination clips rather than wrapping. A name

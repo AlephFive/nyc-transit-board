@@ -160,8 +160,8 @@
      `flex-shrink` lets the name win when both cannot fit, and `nowrap`
      keeps the heading one line tall. */
   /* The name is what identifies a card, so it is never crushed below a
-     readable minimum — twelve bullets at Times Square took the heading
-     down to "Times" before this. The strip yields first and clips. */
+     readable minimum. At a complex carrying twelve bullets the strip is
+     what yields, and clips; the name keeps its floor. */
   /* The station name sits inside `.content` here, not beside it.
      full.liquid puts the heading row and `.content` side by side in
      `.col`, so `gap--small` separates them and the name clears its rows
@@ -172,13 +172,12 @@
   .card-name {
     line-height: 1.15;
     min-width: 7ch;
-    /* One line, always. `data-clamp="1"` used to hold this — the framework
-       truncates in JS — and removing it to get rid of the ellipsis took
-       the wrapping guard with it, so "116 St-Columbia University" broke
-       onto a second line and pushed the card's rows down.
-
-       Clipping is the replacement: the name shows as much as fits and
-       stops, which is the same rule the rows follow. */
+    /* One line, always. A name long enough to wrap — "116 St-Columbia
+       University" — would push the card's rows down, so it clips instead:
+       the name shows as much as fits and stops, which is the same rule
+       the rows follow. The framework's own `data-clamp` truncates in JS
+       and brings an ellipsis with it, which costs three characters of the
+       width it is reporting is short. */
     overflow: hidden;
     white-space: nowrap;
     text-overflow: clip;
@@ -207,10 +206,10 @@
        heading. Half is enough for six marks, which is as many as tell a
        rider anything the name has not.
 
-       Kept as a ceiling even though the strip no longer shrinks: without
-       it a twelve-route complex would push the station name out of its
-       own heading entirely, and a card with no name is worse than one
-       with no bullets. */
+       A ceiling matters even though the strip shrinks first: without it
+       a twelve-route complex would push the station name out of its own
+       heading entirely, and a card with no name is worse than one with
+       no bullets. */
     max-width: 50%;
     /* Not `inherit`: that takes the heading row's `gap--small` (7px), which
        is the right distance between the station name and the strip but too
@@ -269,12 +268,10 @@
     justify-content: center;
     box-sizing: border-box;
   }
-  /* Rows are one line each, so the space two lines used to take is given
-     back as breathing room between them — the panel is read at a glance
-     from across a room, and rows packed tight are what make it hard to
-     track one across its columns. */
-  /* Rows are one line each, so the space the second line used to take is
-     given back as breathing room between them.
+  /* Rows are one line each, and the space that buys is given back as
+     breathing room between them — the panel is read at a glance from
+     across a room, and rows packed tight are what make it hard to track
+     one across its columns.
 
      As margin, not padding. Padding sits *inside* the box, so once a row
      can be inverted the gap inverts with it and two urgent rows meet in a
@@ -347,11 +344,10 @@
      gaps take 78px of that, leaving 44px for the destination: six
      characters, which renders "Coney Island-Stillwell Av" as "Cone…".
 
-     The clock was dropped a step on split cards to buy that width back,
-     first to 0.75em and then to 0.92em. Both were wrong for the same
-     reason: a panel read from across a room has one element that must
-     never shrink, and it is the time. Two columns of clocks at different
-     sizes also read as a mistake rather than as a hierarchy.
+     Shrinking the clock on split cards would buy that width back, and is
+     the wrong trade: a panel read from across a room has one element that
+     must never shrink, and it is the time. Two columns of clocks at
+     different sizes also read as a mistake rather than as a hierarchy.
 
      So every time on the board is the same size, and the destination is
      what gives way — it clips, which a station name survives, where a
@@ -544,10 +540,10 @@
        own text, which it is already set up to do. */
     /* The badge never shrinks. A route name is the row's identity —
        "Q103" truncated to "Q10" names a bus that does not exist, while a
-       destination cut mid-word still reads. An earlier version let the
-       badge give way so the clock could not be pushed off the row; the
-       clock is protected by the destination yielding first instead,
-       which is what `.row-dest`'s `min-width: 0` is for. */
+       destination cut mid-word still reads. Letting the badge give way
+       would protect the clock at the identity's expense; the destination
+       yields first instead, which is what `.row-dest`'s `min-width: 0`
+       is for. */
     flex-shrink: 0;
     /* A third of the row. A character count fitted every branch but "City
        Terminal Zone" and took a fixed slice of a split column, where the
@@ -624,16 +620,16 @@
 {% if used_columns == 0 %}{% assign used_columns = 1 %}{% endif %}
 
 {% comment %}
-  Not a `.view` — trmnlp already wraps this markup in
-  `<div class="view view--full">`, and nesting a second one inside it was
-  why the footer fell off the bottom of the panel.
+  Not a `.view` — the renderer already wraps this markup in
+  `<div class="view view--half_horizontal">`, and a second `.view` nested inside it
+  drops the footer off the bottom of the panel.
 
-  `.view` is a column flex whose height comes from `.view--full`
-  (`height: var(--full-h)`). The outer one has that class and is sized;
-  ours did not, so it grew to fit its content, `.layout` expanded with it,
-  and the `.title_bar` after it was pushed below the screen.
+  `.view` is a column flex whose height comes from `.view--half_horizontal`
+  (`height: var(--half_horizontal-h)`). Only the outer one carries that class, so an
+  inner one grows to fit its content, `.layout` expands with it, and the
+  `.title_bar` after it is pushed below the screen.
 
-  A plain wrapper is all that is needed here: it exists only to carry
+  A plain wrapper is all that is needed: it exists only to carry
   `--dest-scale`, and the layout and title bar beneath it are already the
   two children the framework expects.
 {% endcomment %}
