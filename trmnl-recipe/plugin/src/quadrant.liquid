@@ -669,7 +669,7 @@
 
   One station, read at a glance, is what that space is actually for.
 {% endcomment %}
-      {% for card in c limit: 1 %}
+      {% for card in c %}
 
         <div class="flex flex--row flex--center-y gap--small">
           <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
@@ -718,8 +718,9 @@
           {% if total == 0 %}
             <div class="row-empty title title--small text--center">No upcoming departures</div>
           {% else %}
-            {% assign shown = 0 %}
-            {% for col in card.k %}
+            <div class="flex flex--row gap--small w--full flex--top">
+              {% for col in card.k %}
+                <div class="grow basis--0 w--full">
                     {% comment %}
                       The direction heading — the MTA's own platform wording
                       ("Manhattan", "Queens", "Uptown"), not north/south.
@@ -740,8 +741,6 @@
                       </div>
                     {% endif %}
               {% for r in col.r %}
-                {% if shown >= 4 %}{% break %}{% endif %}
-                {% assign shown = shown | plus: 1 %}
                       {% assign is_express = false %}
                       {% assign glyph = r[0] %}
                       {% if r[0].size > 1 and r[0] contains "X" %}
@@ -775,7 +774,9 @@
                   <span class="row-time value value--xsmall">{{ r[2] }}</span>
                 </div>
               {% endfor %}
-            {% endfor %}
+                </div>
+              {% endfor %}
+            </div>
           {% endif %}
         {% endif %}
       {% endfor %}
