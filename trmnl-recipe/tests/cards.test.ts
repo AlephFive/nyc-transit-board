@@ -39,7 +39,6 @@ import { loadFeed, editFeed } from "./fixtures/load.ts";
 /** Row options as `buildBoard` builds them, with a generous row budget. */
 const options: SharedOptions = {
   limit: 16,
-  showLeaveIn: false,
   fetchLimit: 20,
   settings: { use24HourTime: false, urgentThresholdMinutes: 10 },
 };

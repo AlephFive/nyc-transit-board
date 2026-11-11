@@ -67,4 +67,3 @@ custom_fields:
 
   use_24_hour: true
   urgent_threshold: 10
-  show_leave_in: false

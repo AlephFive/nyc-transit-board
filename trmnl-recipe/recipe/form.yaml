@@ -433,13 +433,3 @@
     Rows this close to your leave time are shown inverted. Counted after walk
     time is subtracted, so it is how long you have before you must go.
 
-- keyname: show_leave_in
-  field_type: boolean
-  name: Show "leave in N minutes"
-  group: Display
-  optional: true
-  default: false
-  help_text: >
-    Off by default. The panel refreshes on an interval, so a countdown can be
-    stale by up to that interval while a clock time never is. The walk-time
-    filter applies either way.

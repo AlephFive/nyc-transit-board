@@ -801,7 +801,10 @@ export async function buildBoard(
 ): Promise<Board> {
   const shared: SharedOptions = {
     limit: settings.isDemo ? DEMO_ROWS_PER_COLUMN : ROWS_PER_COLUMN,
-    showLeaveIn: settings.showLeaveIn,
+    // The panel shows clock times, never a countdown: it refreshes on an
+    // interval, so "leaves in 6 min" is stale by up to that interval while
+    // "16:42" stays true. The shared row builder takes the flag either way.
+    showLeaveIn: false,
     fetchLimit: settings.fetchDepartures,
     settings: {
       use24HourTime: settings.use24HourTime,

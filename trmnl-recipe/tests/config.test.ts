@@ -251,7 +251,7 @@ describe("every card field is actually wired up", () => {
   });
 
   test("display settings are sent", () => {
-    for (const key of ["use_24_hour", "urgent_threshold", "show_leave_in"]) {
+    for (const key of ["use_24_hour", "urgent_threshold", "destination_scale"]) {
       assert.ok(declaredFields(settingsYml).includes(key), `${key} missing`);
       assert.ok(shippedBody.includes(key), `${key} is never sent`);
     }

@@ -77,7 +77,6 @@ interface JsonBoard {
   use24Hour?: unknown;
   urgent?: unknown;
   destinationScale?: unknown;
-  showLeaveIn?: unknown;
   fetchDepartures?: unknown;
 }
 
@@ -244,7 +243,6 @@ export function boardFromJson(body: unknown): BoardSettings {
     destinationScale: clampDestinationScale(
       asNumber(board.destinationScale, DEFAULT_DESTINATION_SCALE)
     ),
-    showLeaveIn: asBoolean(board.showLeaveIn, false),
     fetchDepartures: asNumber(board.fetchDepartures, DEFAULT_FETCH_DEPARTURES),
   };
 }

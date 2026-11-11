@@ -160,8 +160,7 @@ polling_body: |-
     ],
     "use24Hour": {{ use_24_hour | json }},
     "urgent": {{ urgent_threshold | json }},
-    "destinationScale": {{ destination_scale | json }},
-    "showLeaveIn": {{ show_leave_in | json }}
+    "destinationScale": {{ destination_scale | json }}
   }
 refresh_interval: 900
 
@@ -722,15 +721,4 @@ custom_fields:
       reads better from across a room. The route badge and the clock keep
       their size either way.
 
-  - keyname: show_leave_in
-    field_type: boolean
-    name: Show "leave in N minutes"
-    description: Off by default, because a countdown goes stale
-    group: Display
-    optional: true
-    default: false
-    help_text: >
-      Off by default. The panel refreshes on an interval, so a countdown can be
-      stale by up to that interval while a clock time never is. The walk-time
-      filter applies either way.
 

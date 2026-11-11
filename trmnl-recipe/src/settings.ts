@@ -82,7 +82,6 @@ export interface BoardSettings {
    * trades legibility for more of the name, larger does the reverse.
    */
   destinationScale: number;
-  showLeaveIn: boolean;
   /** Departures to request per stop, for the feeds that take a limit. */
   fetchDepartures: number;
 }

@@ -87,6 +87,5 @@
   ],
   "use24Hour": {{ use_24_hour | json }},
   "urgent": {{ urgent_threshold | json }},
-  "destinationScale": {{ destination_scale | json }},
-  "showLeaveIn": {{ show_leave_in | json }}
+  "destinationScale": {{ destination_scale | json }}
 }
