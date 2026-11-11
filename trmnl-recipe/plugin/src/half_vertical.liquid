@@ -652,8 +652,18 @@
 {% endcomment %}
 {% assign device_height = trmnl.device.height | default: 480 %}
 {% assign row_pitch = 30 %}
-{% assign rows_fit = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
-{% assign stack_height = rows_fit | times: row_pitch %}
+{% comment %}
+  Two budgets, chosen per card, exactly as full.liquid does at its own
+  card-count branch: a card alone in the column may use the
+  whole of it, two cards get half each. With one budget for both, the
+  first card's limiter is told it may fill the column — so it does, and
+  the second is left with only its heading, which is what the panel
+  showed.
+{% endcomment %}
+{% assign full_rows = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_height = full_rows | times: row_pitch %}
+{% assign split_height = split_rows | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     {% comment %}
       How many cards this column renders, counted before it opens.
@@ -683,6 +693,7 @@
 {% endcomment %}
       {% for card in c %}
         {% if card.s == 1 or card.s == 2 %}
+          {% if card_count == 1 %}{% assign stack_height = full_height %}{% else %}{% assign stack_height = split_height %}{% endif %}
         <div class="{% if card_count > 1 %}grow basis--0{% endif %} w--full">
 
         <div class="flex flex--row flex--center-y gap--small">
