@@ -526,8 +526,8 @@
 {% endcomment %}
 
 {% comment %}
-  Not a `.view` — the renderer already wraps this markup in
-  `<div class="view view--half_vertical">`, and a second `.view` nested inside it
+  Not a `.view` — the renderer already wraps this markup in a
+  `view` + `view--half_vertical` div, and a second `.view` nested inside it
   drops the footer off the bottom of the panel.
 
   `.view` is a column flex whose height comes from `.view--half_vertical`

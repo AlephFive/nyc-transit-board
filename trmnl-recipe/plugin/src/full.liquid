@@ -375,7 +375,7 @@
   }
   /* The board's own wrapper, deliberately not a `.view`.
      
-     trmnlp already wraps this markup in `<div class="view view--full">`,
+     trmnlp already wraps this markup in a `view` + `view--full` div,
      and nesting a second `.view` inside it is why the footer fell off the
      panel: `.view` is a column flex whose height comes from
      `.view--full`, the inner one had no such class, so it grew to fit its
@@ -648,8 +648,8 @@
 {% if used_columns == 0 %}{% assign used_columns = 1 %}{% endif %}
 
 {% comment %}
-  Not a `.view` — the renderer already wraps this markup in
-  `<div class="view view--full">`, and a second `.view` nested inside it
+  Not a `.view` — the renderer already wraps this markup in a
+  `view` + `view--full` div, and a second `.view` nested inside it
   drops the footer off the bottom of the panel.
 
   `.view` is a column flex whose height comes from `.view--full`
