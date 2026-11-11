@@ -57,15 +57,16 @@ categories:
 strategy: polling
 # POST, with the board as a JSON body.
 #
-# **`trmnlp push` drops `polling_body` and `polling_headers`.** It uploads
-# `polling_verb` and not the other two, so a pushed plugin POSTs an empty
-# document and the Worker answers with the demo board — every user's own
-# stations disappear. Verified by pushing and pulling back: the body
-# round-trips to empty whether written as a block scalar or one line.
+# The Worker reads the body and nothing else. A GET, or a body that does not
+# parse, gets the demo board — so if a panel shows Times Sq, Jamaica and
+# Grand Central rather than its owner's stations, the body is what to check.
 #
-# So the body below must be pasted into the web UI by hand after any push,
-# from `recipe/polling-body.json`. The Worker reads the body and nothing
-# else; there is no query-string fallback to catch a dropped one.
+# `recipe/polling-body.json` holds the same template, for pasting into the
+# web UI by hand. `tests/config.test.ts` asserts the two stay identical.
+#
+# Note that a push rewrites this file in place: it comes back stripped of
+# comments and with `refresh_interval` reset, so commit before pushing and
+# restore afterwards.
 polling_verb: POST
 polling_url: https://trmnl-nyc-transit.spo2-spire-club.workers.dev/api/board
 polling_headers: "content-type=application/json"

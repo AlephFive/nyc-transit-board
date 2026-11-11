@@ -2,14 +2,24 @@
 
 Ordered by what a reviewer would actually hit.
 
-## 1. The three mashup layouts have never run on hardware
+## 1. The layouts have not been seen on a TRMNL X, or in portrait
 
-`half_horizontal`, `half_vertical` and `quadrant` exist and are covered by
-`tests/layouts.test.ts`, but have only ever been through `trmnlp build`.
-Only `full` has been seen on a real panel.
+All four layouts have been checked on the OG panel, including the three
+mashup shapes. What has not been checked is the other device: none of them
+carry a `portrait:` class, and the geometry they do carry is derived from
+landscape formulas.
 
-A store reviewer puts a plugin in a mashup. If one of these breaks, that is
-the first thing they see. Test each on the device before sending.
+TRMNL's own reviewers look for exactly this. Their published checklist says
+they preview every view "across both TRMNL OG and TRMNL X in landscape mode,
+as well as TRMNL X in portrait mode, to verify the screen is mostly content,
+not whitespace", and their review agent flags "a layout sized for the OG that
+leaves the TRMNL X mostly empty" and "portrait layouts that are squashed or
+half empty".
+
+Run `trmy`, their pre-submission review agent, which renders every view on
+both devices in 1-bit and 2-bit, landscape and portrait, with each option of
+every select field:
+https://help.trmnl.com/en/articles/17698472-get-a-trmy-review-before-you-submit-a-recipe
 
 Local render is **not** sufficient evidence here — the local preview has
 already disagreed with the device once in this project.
@@ -27,19 +37,37 @@ https://trmnl.com/plugin_settings/524413/edit
 It was pasted into a chat transcript repeatedly during development. Anyone
 holding it can modify the plugin. Rotate before the listing is public.
 
-## 4. Paste the polling body into the web UI after every push
+## 4. Confirm the polling body survived the last push
 
-`trmnlp push` uploads `polling_verb` but drops `polling_body` and
-`polling_headers`, so a pushed plugin POSTs an empty document. The Worker
-answers that with the demo board, which means every user sees Times Square
-instead of their own stations.
+The board travels in the POST body: TRMNL renders `polling_body` with the
+user's form values and the Worker answers from it. An empty or unparseable
+body gets the demo board instead — Times Sq, Jamaica, Grand Central — which
+looks healthy, because those are real stations with live departures.
 
-There is no query-string fallback to catch it — that parser is gone, and
-with it `recipe/polling-url.txt`, which documented it. After any push,
-paste `recipe/polling-body.json` into the plugin's Polling Body field and
+A panel showing its owner's own stations is proof the body is reaching the
+Worker. Confirm that holds after the final pre-submission push, and if it
+does not, paste `recipe/polling-body.json` into the Polling Body field and
 set the header `content-type: application/json`.
 
+Worth knowing: a push rewrites `plugin/src/settings.yml` in place, stripping
+its comments and resetting `refresh_interval`. Commit before pushing, then
+restore the file.
+
 https://trmnl.com/plugin_settings/524413/edit
+
+## 5. `author_bio` is 29 words; search listing wants 100+
+
+`settings.yml:174` carries the About field, correctly formatted with HTML
+links to the guide and the repo. It is short.
+
+TRMNL's form-builder docs: "A Recipe needs at least 100 words there to
+appear in Google and other search engines." The field is also the public
+description on the recipe page and the text in link previews, so it is the
+main thing a prospective installer reads.
+
+Not a blocker for approval — Chef only checks the field exists — but it is
+the difference between being findable and not. It is also where TRMNL
+expects setup guidance to live, rather than on the panel itself.
 
 ## Known-open, and fine to ship
 
