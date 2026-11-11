@@ -655,7 +655,16 @@
 {% assign rows_fit = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
 {% assign stack_height = rows_fit | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
-    <div class="col gap--small h--full col--start">
+    {% comment %}
+      How many cards this column renders, counted before it opens.
+      full.liquid does the same: with more than one card each wrapper
+      takes `grow basis--0` so they divide the column evenly, and
+      `col--start` is applied only for a single card so it is not
+      stretched to fill the height on its own.
+    {% endcomment %}
+    {% assign card_count = 0 %}
+    {% for card in c %}{% if card.s == 1 or card.s == 2 %}{% assign card_count = card_count | plus: 1 %}{% endif %}{% endfor %}
+    <div class="col gap--small h--full{% if card_count < 2 %} col--start{% endif %}">
 {% comment %}
   Three cards, not six.
   ---------------------------------------------------------------
@@ -673,7 +682,8 @@
   going to fit six stations.
 {% endcomment %}
       {% for card in c %}
-        <div class="w--full">
+        {% if card.s == 1 or card.s == 2 %}
+        <div class="{% if card_count > 1 %}grow basis--0{% endif %} w--full">
 
         <div class="flex flex--row flex--center-y gap--small">
           <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
@@ -786,6 +796,7 @@
           {% endif %}
         {% endif %}
         </div>
+        {% endif %}
       {% endfor %}
   </div>
   </div>
