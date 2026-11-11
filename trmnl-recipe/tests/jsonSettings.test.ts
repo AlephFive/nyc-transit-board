@@ -1,10 +1,14 @@
 /**
  * Reading a board from a JSON polling body.
  *
- * The endpoint accepts this today; the plugin does not send it yet — see
- * `jsonSettings.ts` for why (TRMNL's Liquid has no working JSON escape).
- * The tests exist because the parser is live on POST and because they
- * record what the format buys over the query string.
+ * This is the only format the endpoint reads: the plugin POSTs a
+ * Liquid-rendered body on every refresh, so everything a user configures
+ * reaches the board through this parser.
+ *
+ * Several cases below are about values a station name can legally contain —
+ * a colon, an "@", a middot. They matter because a flat format has to infer
+ * which field it is reading from where a separator falls, and those are the
+ * characters that make it guess wrong.
  */
 
 import { test, describe } from "node:test";
@@ -121,10 +125,11 @@ describe("a card from a JSON body", () => {
     assert.equal(cards[0].title, "Home");
   });
 
-  test("a title can contain every separator the flat format used", () => {
-    // The point of the format. In the query string each of these broke
-    // something: ":" split the fields, "@" was a smuggled name, "·"
-    // ended a dropdown label, and ":5:" was a packed tail.
+  test("a title can contain every separator a flat format would use", () => {
+    // The point of the format. Each of these is a character a positional
+    // parser has to treat as structure: ":" between fields, "@" before a
+    // smuggled name, "·" ending a dropdown label. A title is free text and
+    // may hold all of them.
     const title = 'A: B & C/D @ x · y:5:';
     const { cards } = boardFromJson({
       cards: [{ station: "subway:117", title }],
@@ -190,8 +195,8 @@ describe("a card from a JSON body", () => {
   });
 
   test("a stored dropdown label is recovered", () => {
-    // JSON does not help here — it is the wrong *value*, not a parsing
-    // ambiguity — so the same recovery runs as on the query string.
+    // JSON does not help here: the value itself is wrong, not merely
+    // ambiguous, so the label has to be mapped back to its stop ID.
     const { cards } = boardFromJson({
       cards: [{ station: "116 St-Columbia University (1) · Subway" }],
     });
@@ -234,7 +239,7 @@ describe("values arrive as whatever Liquid rendered", () => {
     assert.equal(board.destinationScale, 1);
   });
 
-  test("the destination scale is clamped, by the same rule as the query string", () => {
+  test("the destination scale is clamped", () => {
     assert.equal(boardFromJson({ destinationScale: 5 }).destinationScale, 1.3);
     assert.equal(boardFromJson({ destinationScale: 0.1 }).destinationScale, 0.7);
   });
@@ -264,9 +269,8 @@ describe("a body that makes no sense still renders a board", () => {
   });
 
   test("every card hidden shows them anyway", () => {
-    // Same rule as the query string: TRMNL sends an explicit false for a
-    // checkbox never touched, and hiding every card cannot be told apart
-    // from the untouched state.
+    // TRMNL sends an explicit false for a checkbox never touched, so
+    // hiding every card cannot be told apart from the untouched state.
     const board = boardFromJson({
       cards: [{ station: "subway:117", visible: false }],
     });

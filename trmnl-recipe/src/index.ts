@@ -1,14 +1,14 @@
 /**
  * The recipe's polling endpoint.
  *
- * TRMNL calls `GET /api/board` on each refresh with the user's form values in
- * the query string, and renders the JSON this returns through the plugin's
- * Liquid template. There is no state: the settings arrive with the request.
+ * TRMNL calls `POST /api/board` on each refresh with the user's form values
+ * as a Liquid-rendered JSON body, and renders the JSON this returns through
+ * the plugin's Liquid template. There is no state: the settings arrive with
+ * the request.
  *
  * Phase 1 serves JSON only — the UI is phase 2 (see `docs/TRMNL-RECIPE-SPEC.md`).
  */
 
-import { parseBoardSettings } from "./settings";
 import { boardFromJson } from "./jsonSettings";
 import { buildBoard, type BuildEnv, type Board } from "./buildBoard";
 import {
@@ -261,23 +261,17 @@ async function handleBoard(
   env: BuildEnv,
   ctx?: ExecutionContext
 ): Promise<Response> {
-  // A POST carries the board as JSON; a GET carries it in the query
-  // string. Both are supported because the polling URL changed shape and
-  // a user who has not re-saved since is still sending the old one.
-  //
-  // JSON is the better of the two and the one the plugin ships: the flat
-  // format has to infer which field it is reading from where a separator
-  // fell, and a station name can contain every separator this project
-  // uses. A malformed body falls through to the query string rather than
-  // erroring — an unattended panel must render something.
-  let settings = parseBoardSettings(url);
-  if (request.method === "POST") {
-    try {
-      settings = boardFromJson(await request.json());
-    } catch {
-      // Not JSON, or not readable. The query-string parse stands.
-    }
+  // The board arrives as a JSON POST body. A GET, or a body that will not
+  // parse, yields the demo board rather than an error — an unattended panel
+  // must render something, and `boardFromJson` treats an absent board as an
+  // unconfigured one.
+  let payload: unknown;
+  try {
+    if (request.method === "POST") payload = await request.json();
+  } catch {
+    // Not JSON, or not readable. An unconfigured board it is.
   }
+  const settings = boardFromJson(payload);
 
   // The demo board is the same for everyone who has not configured a card,
   // so it is built once and reused. `caches` is absent outside the Workers

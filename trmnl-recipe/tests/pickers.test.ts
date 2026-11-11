@@ -19,19 +19,20 @@
 
 import { test, describe, before } from "node:test";
 import assert from "node:assert/strict";
-import { parseBoardSettings } from "../src/settings.ts";
+import { boardFromJson } from "../src/jsonSettings.ts";
 import {
   searchStations,
   searchAllTypes,
   fetchBusStopNames,
 } from "../src/pickers.ts";
 
-const board = (query: string) =>
-  parseBoardSettings(new URL(`https://example.test/api/board?${query}`));
+/** A board holding one card, as the polling body describes it. */
+const board = (type: string, ids: string[], walk: number) =>
+  boardFromJson({ cards: [{ station: { type, ids }, walk }] });
 
 describe("a stop ID is one direction", () => {
   test("a card with one ID gets one column", () => {
-    const { cards } = board("c1=bus:505507&w1=3");
+    const { cards } = board("bus", ["505507"], 3);
     assert.deepEqual(cards[0].stopIds, ["505507"]);
   });
 
@@ -39,7 +40,7 @@ describe("a stop ID is one direction", () => {
     // 505507 and 505513 are the two sides of Borden Av / 5 St. The card
     // renders one column per ID, so a user who picks only one sees
     // departures in a single direction with no hint that the other exists.
-    const { cards } = board("c1=bus:505507%2B505513&w1=3");
+    const { cards } = board("bus", ["505507", "505513"], 3);
     assert.equal(cards[0].stopIds.length, 2);
   });
 });

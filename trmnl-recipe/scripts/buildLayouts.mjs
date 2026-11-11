@@ -7,14 +7,14 @@
  * layouts therefore have to be four complete files, and the duplication
  * between them is forced by the platform.
  *
- * What was not forced was maintaining it by hand. The three mashup layouts
- * carried 529 lines of CSS each that differed in exactly two values — the
- * view name and the cell's width/height — and a row renderer that was
- * byte-identical across all three. A fix therefore had to be made four
- * times, and in practice was made once and forgotten three times: the
- * layouts drifted, and the drift was only visible on the panel.
+ * What the platform does not force is maintaining that duplication by hand.
+ * The three mashup layouts need 529 lines of CSS each that differ in exactly
+ * two values — the view name and the cell's width and height — and the
+ * device profile block is identical in all four. Typed out, a fix to any of
+ * it has to be made four times, and a copy that misses one is invisible
+ * until the panel renders it.
  *
- * So the duplication stays, because TRMNL requires it, but it is *generated*
+ * So the duplication stays, because TRMNL requires it, and is *generated*
  * rather than typed. One edit to a shared part lands in every layout that
  * uses it.
  *

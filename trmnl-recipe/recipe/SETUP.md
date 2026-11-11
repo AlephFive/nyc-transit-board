@@ -18,9 +18,10 @@ and add a header `content-type: application/json`. The board travels in
 the body — see `docs/NEXT-SESSION.md` for why it is a POST and not a
 query string.
 
-`polling-url.txt` holds the older GET form. The Worker still accepts it,
-so a plugin configured that way keeps working, but new setups should use
-the body.
+The endpoint reads the JSON body and nothing else. A GET, or a body that
+will not parse, renders the demo board — so a plugin whose Polling URL
+carries the board in a query string shows Times Square rather than the
+user's own stations.
 
 ---
 

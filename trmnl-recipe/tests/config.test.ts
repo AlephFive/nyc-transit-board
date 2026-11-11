@@ -2,18 +2,18 @@
  * The recipe's two configuration sources, which must agree.
  *
  * `plugin/src/settings.yml` is what `trmnlp push` uploads. `recipe/form.yaml`
- * and `recipe/polling-url.txt` are the paste-by-hand copies for configuring
+ * and `recipe/polling-body.json` are the paste-by-hand copies for configuring
  * the plugin through TRMNL's web UI. They describe the same recipe, so they
  * drift silently — and a field is only wired up when it appears in *both* the
- * form and the polling URL.
+ * form and the polling body.
  *
- * Both halves of that pairing have already broken, in opposite files:
+ * Both halves of that pairing can break, in opposite files:
  *
- * - `polling-url.txt` read `cardN_routes` while `form.yaml` never defined it,
- *   so the line filter could not be reached through the pasted form.
- * - `settings.yml` defined `cardN_routes` while its own `polling_url` never
- *   wrote it, so a user of the *published* recipe could fill the field in and
- *   watch nothing happen.
+ * - a polling template reads `cardN_routes` while `form.yaml` never defines
+ *   it, so the line filter cannot be reached through the pasted form.
+ * - `settings.yml` defines `cardN_routes` while its own polling body never
+ *   writes it, so a user of the *published* recipe fills the field in and
+ *   watches nothing happen.
  *
  * Neither is a type error, neither fails a lint, and the board renders
  * perfectly in both cases. Only a reader comparing two files notices, which is
@@ -32,7 +32,6 @@ const read = (relative: string) =>
 
 const settingsYml = read("plugin/src/settings.yml");
 const formYaml = read("recipe/form.yaml");
-const pollingUrlTxt = read("recipe/polling-url.txt");
 
 /** Field keynames declared in a YAML form, in file order. */
 const declaredFields = (yaml: string): string[] =>
@@ -58,17 +57,6 @@ function pollingUrlFromSettings(yaml: string): string {
   return parts.join("");
 }
 
-/** The ready-to-paste one-liner at the bottom of polling-url.txt. */
-function pollingUrlFromTxt(text: string): string {
-  const candidates = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.startsWith("https://") && line.length > 300);
-
-  assert.ok(candidates.length > 0, "polling-url.txt has no pasteable URL");
-  return candidates[candidates.length - 1];
-}
-
 /**
  * The polling body out of a settings.yml.
  *
@@ -91,15 +79,12 @@ function pollingBodyFromSettings(yaml: string): string {
 /**
  * The JSON polling body, from the file that holds it.
  *
- * It lives in `recipe/` rather than in settings.yml because `trmnlp push`
+ * It lives in `recipe/` as well as in settings.yml because `trmnlp push`
  * drops `polling_body` — verified by pushing and pulling back, in both
- * block-scalar and one-line form. The Worker reads the body on POST and
- * the format is the one this recipe wants; the plugin cannot send it
- * until the CLI uploads the field, so settings.yml still ships the GET
- * query string and both are tested.
+ * block-scalar and one-line form. So the body has to be pasted into the web
+ * UI by hand, and this file is what gets pasted.
  */
 const shippedBody = read("recipe/polling-body.json");
-const pastedUrl = pollingUrlFromTxt(pollingUrlTxt);
 
 describe("every card field is actually wired up", () => {
   // A field the polling URL never writes is a control that does nothing, and
@@ -287,18 +272,6 @@ describe("the two configuration sources agree", () => {
   const withoutHost = (url: string) =>
     url.replace(/https:\/\/[^/]+\//, "https://HOST/");
 
-  test("the pasteable copy documents the same endpoint", () => {
-    // `polling-url.txt` is the paste-by-hand copy for TRMNL's web UI. The
-    // plugin POSTs a JSON body now, so the two no longer share a long
-    // interpolated URL to compare — what must still match is the endpoint
-    // they point at, since a stale host there sends a hand-configured
-    // user to the wrong Worker.
-    assert.ok(
-      pastedUrl.includes("/api/board"),
-      "polling-url.txt does not document the board endpoint"
-    );
-  });
-
   test("both forms declare the same card fields", () => {
     const cardFields = (yaml: string) =>
       declaredFields(yaml)
@@ -378,7 +351,6 @@ describe("the two configuration sources agree", () => {
     // it is rewritten in place, because it is the file trmnlp uploads.
     for (const [name, content] of [
       ["form.yaml", formYaml],
-      ["polling-url.txt", pollingUrlTxt],
     ] as [string, string][]) {
       assert.ok(
         content.includes("REPLACE_ME"),

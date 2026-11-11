@@ -1,21 +1,16 @@
 /**
  * Parsing a board from a JSON polling body.
  *
- * TRMNL can POST a Liquid-rendered body instead of interpolating a query
- * string, and this reads that body. It exists because the query-string
- * format has been the single largest source of defects in this project:
+ * TRMNL POSTs a Liquid-rendered body carrying the user's whole board, and
+ * this reads it.
  *
- * - `Bus:6:` parsed as a bus stop called "6" and rendered a dead card
- * - a packed `:<walk>:<title>` tail reached the panel as a heading of ":5:"
- * - a display name smuggled beside the ID arrived as "… · Subway"
- * - a route filter was silently ignored when it sat past a tail
- * - a tail hiding behind the filter rendered a badge reading "ACE:5:"
- *
- * Every one is a positional-grammar ambiguity: the parser had to infer
- * which field it was looking at from where a separator fell, and a station
- * name can contain every separator. A JSON object has no positions. A
- * field is whatever its key says it is, and a value containing a colon,
- * an "@" or a middot is just a string.
+ * The format is JSON rather than a flat string because a flat one has to
+ * infer which field it is reading from where a separator falls, and a
+ * station name can contain every separator this project uses — a colon, an
+ * "@", a middot. That ambiguity is what makes `Bus:6:` parse as a stop
+ * called "6", or a route filter sitting past an unexpected tail vanish
+ * without an error. A JSON object has no positions: a field is whatever its
+ * key says it is, and a value holding a separator is just a string.
  *
  * **Escaping is `| json`, and the station arrives already split.**
  *

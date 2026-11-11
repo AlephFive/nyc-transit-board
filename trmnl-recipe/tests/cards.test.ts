@@ -2,11 +2,10 @@
  * The four card builders, against captured feeds.
  *
  * These are the functions that turn a decoded feed into what the panel
- * renders, and until now nothing tested them directly: they were module
- * private, so the only coverage was whatever `buildBoard` happened to
- * exercise on its way past. The comments in `buildBoard.ts` record what that
- * cost — "this was ignored entirely until now: the filter ran inside
- * subwayCard" — and the rules those comments defend are asserted here.
+ * renders. They are exported so they can be driven directly here: reached
+ * only through `buildBoard`, a builder is covered by whatever that happens
+ * to exercise on its way past, which is not the same as being tested. The
+ * rules `buildBoard.ts` documents in comments are asserted here instead.
  *
  * **No network.** A builder reaches its feed through `sharedFeed`, which
  * returns a cached promise when the key is already present. Seeding the
