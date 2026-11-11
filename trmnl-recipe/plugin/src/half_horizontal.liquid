@@ -96,20 +96,28 @@
   }
   .bullet--express {
     border-radius: 0;
-    /* A rotated square's bounding box grows by root 2, so a diamond would
-       sit 29px wide beside a 20px circle and push its row out of line.
-       Scaling by 1/root 2 would keep the two in exactly the same space —
-       but a diamond reads smaller than a circle of equal bounding box,
-       because the corners that carry its width hold no ink. 0.78 gives
-       back the couple of pixels that costs, which is a hair over its
-       share and still well inside the row. */
-    transform: rotate(45deg) scale(0.78);
+    /* A rotated square's bounding box grows by root 2, so an unscaled
+       diamond would sit 30px wide beside a 22px circle and push its row
+       out of line. Scaling by 1/root 2 would hold the two in exactly the
+       same space, and reads too small: the corners that carry a diamond's
+       width hold no ink, so equal bounding boxes look unequal.
+
+       0.85 puts the diamond's box at 26px against the circle's 22px — a
+       deliberate 4px over its share, which is what it takes for the two to
+       read as the same size. The cost is ~2px of the destination on a
+       split subway column, the narrowest place a row is drawn. */
+    transform: rotate(45deg) scale(0.85);
   }
   /* Counter-rotate the glyph so the number stays upright in the diamond. */
   .bullet--express > span {
     display: block;
-    /* Undo both, so the glyph stays upright and full size in the diamond. */
-    transform: rotate(-45deg) scale(1.414);
+    /* Undo the rotation, and undo enough of the outer scale that the digit
+       matches the one in a circular bullet. The diamond is the thing drawn
+       larger here; its number is not, and a number that grew with it would
+       make the express read as a different size of route rather than as the
+       same route running express. 0.85 x 1.2976 holds the glyph at the size
+       a circle's carries. */
+    transform: rotate(-45deg) scale(1.2976);
   }
   /* Two letters in a circle sized for one would touch the curve on both
      sides, so SI - the only two-character bullet in the system - is set
@@ -604,18 +612,20 @@
   the empty ones are dropped, so a card never moves because another was
   added elsewhere.
 
-  This layout shows one card per column (the top slot), so a column is in use
-  exactly when that slot is configured.
+  This layout shows one card per column, so a column is in use exactly when
+  there is a card left to put in it.
+
+  **The first three cards present, not slots 1, 3 and 5.** A slot number is
+  a position in the full-screen grid, not a ranking, and a board whose odd
+  slots are off is an ordinary board — keying on those slots would draw a
+  blank cell for one. The backend omits a hidden card from the payload, so
+  the Nth card present takes the Nth column.
 {% endcomment %}
 {% assign used_columns = 0 %}
-{% for column_index in (0..2) %}
-  {% assign slot = column_index | times: 2 | plus: 1 %}
-  {% for card in c %}
-    {% if card.s == slot %}
-      {% assign used_columns = used_columns | plus: 1 %}
-      {% break %}
-    {% endif %}
-  {% endfor %}
+{% for card in c %}
+  {% if used_columns < 3 %}
+    {% assign used_columns = used_columns | plus: 1 %}
+  {% endif %}
 {% endfor %}
 {% if used_columns == 0 %}{% assign used_columns = 1 %}{% endif %}
 
@@ -669,15 +679,13 @@
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     <div class="grid grid--cols-{{ used_columns }} h--full">
       {% for column_index in (0..2) %}
-        {% assign top_slot = column_index | times: 2 | plus: 1 %}
-        {% assign has_card = false %}
-        {% for card in c %}
-          {% if card.s == top_slot %}{% assign has_card = true %}{% break %}{% endif %}
-        {% endfor %}
-        {% if has_card %}
+        {% if column_index < used_columns %}
+        {% assign wanted = column_index | plus: 1 %}
         <div class="col gap--small h--full col--start">
+          {% assign seen = 0 %}
           {% for card in c %}
-            {% if card.s == top_slot %}
+            {% assign seen = seen | plus: 1 %}
+            {% if seen == wanted %}
               <div class="w--full">
                 <div class="flex flex--row flex--center-y gap--small">
                 <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>

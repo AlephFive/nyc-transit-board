@@ -903,3 +903,49 @@ describe("the layouts are generated, not hand-maintained", () => {
     );
   });
 });
+
+/**
+ * A mashup picks cards by how many it has room for, not by slot number.
+ *
+ * A slot is a position in the full-screen grid, not a ranking. Someone who
+ * turns off card 1 and keeps the rest has an ordinary board, and the
+ * backend drops a hidden card from the payload while leaving the others on
+ * their own slots — so a layout that asks for "slot 1" gets nothing from a
+ * board that is perfectly well configured. On a quadrant, which has room
+ * for one card, that renders a blank panel.
+ */
+describe("a mashup shows the cards it has, whatever their slots", () => {
+  const CAPACITY: Record<string, number> = {
+    half_horizontal: 3,
+    half_vertical: 2,
+    quadrant: 1,
+  };
+
+  for (const [name, capacity] of Object.entries(CAPACITY)) {
+    test(`${name} takes the first ${capacity} card(s) present`, () => {
+      const liquid = source(name);
+
+      // No slot-number test decides whether a card is drawn.
+      assert.doesNotMatch(
+        liquid,
+        /\{%\s*if\s+card\.s\s*==/,
+        `${name} still selects cards by slot number, so a board whose ` +
+          `slot 1 is off loses a cell it has a card for`
+      );
+    });
+  }
+
+  test("every layout bounds itself by its own capacity", () => {
+    // A counter compared against the capacity is what replaces the slot
+    // test, so the number itself has to appear in a bound.
+    for (const [name, capacity] of Object.entries(CAPACITY)) {
+      const liquid = source(name);
+      const bound = new RegExp(String.raw`\w+\s*<\s*` + capacity + String.raw`\b`);
+      assert.match(
+        liquid,
+        bound,
+        `${name} should stop after ${capacity} card(s), bounded by a counter`
+      );
+    }
+  });
+});
