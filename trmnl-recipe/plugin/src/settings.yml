@@ -64,9 +64,12 @@ strategy: polling
 # `recipe/polling-body.json` holds the same template, for pasting into the
 # web UI by hand. `tests/config.test.ts` asserts the two stay identical.
 #
-# Note that a push rewrites this file in place: it comes back stripped of
-# comments and with `refresh_interval` reset, so commit before pushing and
-# restore afterwards.
+# A push rewrites this file in place, and the rewrite is lossy: it comes
+# back stripped of comments, with `refresh_interval` reset, and with
+# `polling_body` and `polling_headers` written out empty. That is the CLI's
+# serialisation of the file, not the server's state — the plugin keeps
+# polling correctly afterwards. Commit before pushing and restore after, so
+# the next push does not upload the stripped copy.
 polling_verb: POST
 polling_url: https://trmnl-nyc-transit.spo2-spire-club.workers.dev/api/board
 polling_headers: "content-type=application/json"

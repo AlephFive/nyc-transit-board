@@ -37,23 +37,19 @@ https://trmnl.com/plugin_settings/524413/edit
 It was pasted into a chat transcript repeatedly during development. Anyone
 holding it can modify the plugin. Rotate before the listing is public.
 
-## 4. Confirm the polling body survived the last push
+## 4. Restore settings.yml after every push
 
-The board travels in the POST body: TRMNL renders `polling_body` with the
-user's form values and the Worker answers from it. An empty or unparseable
-body gets the demo board instead — Times Sq, Jamaica, Grand Central — which
-looks healthy, because those are real stations with live departures.
+A push rewrites `plugin/src/settings.yml` in place and the rewrite is
+lossy: comments gone, `refresh_interval` reset to 1440, and
+`polling_body` and `polling_headers` written out empty. That is the CLI
+serialising the file, not the server losing the fields — the plugin keeps
+polling correctly, and no re-paste is needed.
 
-A panel showing its owner's own stations is proof the body is reaching the
-Worker. Confirm that holds after the final pre-submission push, and if it
-does not, paste `recipe/polling-body.json` into the Polling Body field and
-set the header `content-type: application/json`.
+So the risk is only to the repo: commit before pushing, then
+`git checkout -- plugin/src/settings.yml`. Push the stripped copy by
+accident and the next upload really would carry empty fields.
 
-Worth knowing: a push rewrites `plugin/src/settings.yml` in place, stripping
-its comments and resetting `refresh_interval`. Commit before pushing, then
-restore the file.
-
-https://trmnl.com/plugin_settings/524413/edit
+`refresh_interval` on the server is a separate matter — see blocker 2.
 
 ## 5. `author_bio` is 29 words; search listing wants 100+
 
