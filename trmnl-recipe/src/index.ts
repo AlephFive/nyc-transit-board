@@ -247,6 +247,133 @@ const DEMO_CACHE_SECONDS = 60;
 /** The cache entry for the demo board. Keyed on a URL, as the Cache API requires. */
 const DEMO_CACHE_KEY = "https://board.invalid/demo";
 
+/**
+ * Build and answer a board request.
+ *
+ * Split out of `fetch` so that routing stays legible: the handler above
+ * decides *which* request this is, and this decides what a board request
+ * means. It is the same shape as `handlePicker`, and takes `ctx` because
+ * the demo cache write outlives the response.
+ */
+async function handleBoard(
+  request: Request,
+  url: URL,
+  env: BuildEnv,
+  ctx?: ExecutionContext
+): Promise<Response> {
+  // A POST carries the board as JSON; a GET carries it in the query
+  // string. Both are supported because the polling URL changed shape and
+  // a user who has not re-saved since is still sending the old one.
+  //
+  // JSON is the better of the two and the one the plugin ships: the flat
+  // format has to infer which field it is reading from where a separator
+  // fell, and a station name can contain every separator this project
+  // uses. A malformed body falls through to the query string rather than
+  // erroring — an unattended panel must render something.
+  let settings = parseBoardSettings(url);
+  if (request.method === "POST") {
+    try {
+      settings = boardFromJson(await request.json());
+    } catch {
+      // Not JSON, or not readable. The query-string parse stands.
+    }
+  }
+
+  // The demo board is the same for everyone who has not configured a card,
+  // so it is built once and reused. `caches` is absent outside the Workers
+  // runtime (tests, `node --test`), hence the guard rather than a bare call.
+  const cache = typeof caches !== "undefined" ? caches.default : undefined;
+  // workers.dev cannot cache (see DEMO_CACHE_SECONDS), so a miss there is
+  // not a cache that failed — it is a cache that was never available.
+  const cacheUsable = cache !== undefined && !url.hostname.endsWith(".workers.dev");
+  if (settings.isDemo && cacheUsable) {
+    const hit = await cache!.match(DEMO_CACHE_KEY);
+    if (hit) {
+      const headers = new Headers(hit.headers);
+      headers.set("x-board-cache", "hit");
+      return new Response(hit.body, { status: 200, headers });
+    }
+  }
+
+  // `buildBoard` catches per card and is not supposed to reject, but the
+  // whole design rule is that nothing blanks the board — and a Worker
+  // exception renders as nothing at all, since the Liquid template never
+  // runs. So the invariant is enforced here rather than trusted.
+  let board: Board;
+  try {
+    board = await buildBoard(settings, env);
+  } catch (err) {
+    board = {
+      t: new Date().toISOString(),
+      c: [
+        {
+          s: 1,
+          y: "error",
+          n: "Transit board",
+          e: err instanceof Error ? err.message : "Unknown error",
+        },
+      ],
+    };
+  }
+
+  // Trim before serialising if the board would exceed what TRMNL stores.
+  // Raising the per-card row count so the panel can decide what fits made
+  // this reachable: six busy subway cards measured at 90% of the cap, and
+  // going over does not fail loudly — TRMNL truncates, so the panel would
+  // simply render a board missing its last cards.
+  //
+  // Rows are dropped from the end of the longest column first, so the trim
+  // costs the departures furthest in the future and every card keeps its
+  // soonest ones.
+  trimToPayloadCap(board, PAYLOAD_CAP_BYTES);
+
+  const body = JSON.stringify(board);
+  const bytes = new TextEncoder().encode(body).length;
+
+  // The cap is TRMNL's, and exceeding it silently truncates a user's board,
+  // so it is reported rather than discovered in the field. Phase 1 measures;
+  // enforcement (trimming lowest-priority rows) comes with the real row
+  // counts in phase 2.
+  const headers: Record<string, string> = {
+    "content-type": "application/json; charset=utf-8",
+    "access-control-allow-origin": "*",
+    "cache-control": "no-store",
+    "x-payload-bytes": String(bytes),
+    "x-payload-cap-pct": ((bytes / PAYLOAD_CAP_BYTES) * 100).toFixed(1),
+  };
+
+  // Only a *complete* demo board is worth storing. A board carrying a card
+  // error is a transient upstream failure, and caching it would pin that
+  // failure in front of every new installer for the full TTL.
+  const complete = board.c.every((card) => card.e === undefined);
+  if (settings.isDemo && cacheUsable && complete) {
+    const stored = new Response(body, {
+      status: 200,
+      headers: {
+        ...headers,
+        "cache-control": `max-age=${DEMO_CACHE_SECONDS}`,
+      },
+    });
+    // Handed to waitUntil so the write finishes after the response is
+    // sent. A bare `void cache.put(...)` is not enough: the runtime may
+    // cancel pending work once the handler returns, so the entry is never
+    // stored and every request reports a miss — which is exactly what the
+    // first version of this did.
+    if (ctx) {
+      ctx.waitUntil(cache!.put(DEMO_CACHE_KEY, stored));
+    } else {
+      await cache!.put(DEMO_CACHE_KEY, stored);
+    }
+  }
+
+  headers["x-board-cache"] = !settings.isDemo
+    ? "bypass"
+    : cacheUsable
+      ? "miss"
+      : "unavailable";
+  return new Response(body, { status: 200, headers });
+}
+
 export default {
   async fetch(
     request: Request,
@@ -279,116 +406,6 @@ export default {
       return json({ error: "Not found" }, 404);
     }
 
-    // A POST carries the board as JSON; a GET carries it in the query
-    // string. Both are supported because the polling URL changed shape and
-    // a user who has not re-saved since is still sending the old one.
-    //
-    // JSON is the better of the two and the one the plugin ships: the flat
-    // format has to infer which field it is reading from where a separator
-    // fell, and a station name can contain every separator this project
-    // uses. A malformed body falls through to the query string rather than
-    // erroring — an unattended panel must render something.
-    let settings = parseBoardSettings(url);
-    if (request.method === "POST") {
-      try {
-        settings = boardFromJson(await request.json());
-      } catch {
-        // Not JSON, or not readable. The query-string parse stands.
-      }
-    }
-
-    // The demo board is the same for everyone who has not configured a card,
-    // so it is built once and reused. `caches` is absent outside the Workers
-    // runtime (tests, `node --test`), hence the guard rather than a bare call.
-    const cache = typeof caches !== "undefined" ? caches.default : undefined;
-    // workers.dev cannot cache (see DEMO_CACHE_SECONDS), so a miss there is
-    // not a cache that failed — it is a cache that was never available.
-    const cacheUsable = cache !== undefined && !url.hostname.endsWith(".workers.dev");
-    if (settings.isDemo && cacheUsable) {
-      const hit = await cache!.match(DEMO_CACHE_KEY);
-      if (hit) {
-        const headers = new Headers(hit.headers);
-        headers.set("x-board-cache", "hit");
-        return new Response(hit.body, { status: 200, headers });
-      }
-    }
-
-    // `buildBoard` catches per card and is not supposed to reject, but the
-    // whole design rule is that nothing blanks the board — and a Worker
-    // exception renders as nothing at all, since the Liquid template never
-    // runs. So the invariant is enforced here rather than trusted.
-    let board: Board;
-    try {
-      board = await buildBoard(settings, env);
-    } catch (err) {
-      board = {
-        t: new Date().toISOString(),
-        c: [
-          {
-            s: 1,
-            y: "error",
-            n: "Transit board",
-            e: err instanceof Error ? err.message : "Unknown error",
-          },
-        ],
-      };
-    }
-
-    // Trim before serialising if the board would exceed what TRMNL stores.
-    // Raising the per-card row count so the panel can decide what fits made
-    // this reachable: six busy subway cards measured at 90% of the cap, and
-    // going over does not fail loudly — TRMNL truncates, so the panel would
-    // simply render a board missing its last cards.
-    //
-    // Rows are dropped from the end of the longest column first, so the trim
-    // costs the departures furthest in the future and every card keeps its
-    // soonest ones.
-    trimToPayloadCap(board, PAYLOAD_CAP_BYTES);
-
-    const body = JSON.stringify(board);
-    const bytes = new TextEncoder().encode(body).length;
-
-    // The cap is TRMNL's, and exceeding it silently truncates a user's board,
-    // so it is reported rather than discovered in the field. Phase 1 measures;
-    // enforcement (trimming lowest-priority rows) comes with the real row
-    // counts in phase 2.
-    const headers: Record<string, string> = {
-      "content-type": "application/json; charset=utf-8",
-      "access-control-allow-origin": "*",
-      "cache-control": "no-store",
-      "x-payload-bytes": String(bytes),
-      "x-payload-cap-pct": ((bytes / PAYLOAD_CAP_BYTES) * 100).toFixed(1),
-    };
-
-    // Only a *complete* demo board is worth storing. A board carrying a card
-    // error is a transient upstream failure, and caching it would pin that
-    // failure in front of every new installer for the full TTL.
-    const complete = board.c.every((card) => card.e === undefined);
-    if (settings.isDemo && cacheUsable && complete) {
-      const stored = new Response(body, {
-        status: 200,
-        headers: {
-          ...headers,
-          "cache-control": `max-age=${DEMO_CACHE_SECONDS}`,
-        },
-      });
-      // Handed to waitUntil so the write finishes after the response is
-      // sent. A bare `void cache.put(...)` is not enough: the runtime may
-      // cancel pending work once the handler returns, so the entry is never
-      // stored and every request reports a miss — which is exactly what the
-      // first version of this did.
-      if (ctx) {
-        ctx.waitUntil(cache!.put(DEMO_CACHE_KEY, stored));
-      } else {
-        await cache!.put(DEMO_CACHE_KEY, stored);
-      }
-    }
-
-    headers["x-board-cache"] = !settings.isDemo
-      ? "bypass"
-      : cacheUsable
-        ? "miss"
-        : "unavailable";
-    return new Response(body, { status: 200, headers });
+    return handleBoard(request, url, env, ctx);
   },
 };
