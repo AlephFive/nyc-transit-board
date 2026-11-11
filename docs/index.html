@@ -212,6 +212,58 @@ layout: null
   .gslot b { display: block; font-family: var(--display); color: var(--ink); font-size: 14px; }
   .gcap { font-size: 14px; color: var(--ink-faint); margin: 0 0 24px; }
 
+  /* ---- shared-screen diagrams ---- */
+  .share-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin: 22px 0 10px;
+  }
+  .share {
+    flex: 1 1 190px;
+    min-width: 0;
+  }
+  .share h3 {
+    font-family: var(--display);
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+  .screen-demo {
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 4px;
+    background: var(--paper-raised);
+    aspect-ratio: 5 / 3;
+    display: grid;
+    gap: 4px;
+    padding: 4px;
+  }
+  .screen-demo.lr { grid-template-columns: 1fr 1fr; }
+  .screen-demo.tb { grid-template-rows: 1fr 1fr; }
+  .screen-demo.quad { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+  .scell {
+    border-radius: 2px;
+    background: var(--paper);
+    border: 1px dashed var(--rule-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    padding: 4px;
+  }
+  .scell.ours {
+    border-style: solid;
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+  }
+  .scell.ours b {
+    font-family: var(--display);
+    color: var(--ink);
+  }
+
   /* ---- field table ---- */
   .fields { margin: 20px 0 8px; border-top: 1px solid var(--rule); }
   .field {
@@ -378,6 +430,7 @@ layout: null
     <p>Contents</p>
     <ol>
       <li><a href="#layout">The six slots</a></li>
+      <li><a href="#sharing">Sharing the screen</a></li>
       <li><a href="#card">Setting up a card</a></li>
       <li><a href="#lines">Choosing routes</a></li>
       <li><a href="#split">Splitting a big station</a></li>
@@ -416,6 +469,82 @@ layout: null
         Leaving a slot <strong>Off</strong> is how you get a tall card. The remaining card in
         that column stretches to fill it and shows about twice as many rows. A column with
         both slots off disappears and the others widen.
+      </p>
+    </section>
+
+    <section id="sharing">
+      <h2>Sharing the screen</h2>
+      <p class="sec-note">Put the board beside another plugin and it shows fewer cards, not smaller ones.</p>
+
+      <p>
+        TRMNL lets you split one screen between two or four plugins, which it calls a
+        mashup. The transit board fits any of those shapes. It does not shrink the whole
+        six&#8209;card grid down to fit — a card at a quarter size is unreadable from
+        across a room, which is the only distance a wall panel is read from. Instead it
+        drops cards and gives the survivors the full space.
+      </p>
+
+      <p>
+        <strong>Which cards survive is decided by slot number</strong>, so it is worth
+        putting your most-used station in card&nbsp;1. That one appears in every shape.
+      </p>
+
+      <div class="share-row">
+        <div class="share">
+          <h3>Tall half</h3>
+          <div class="screen-demo lr">
+            <div class="scell ours"><span><b>Cards 1 &amp; 2</b><br>stacked</span></div>
+            <div class="scell">other plugin</div>
+          </div>
+        </div>
+
+        <div class="share">
+          <h3>Wide half</h3>
+          <div class="screen-demo tb">
+            <div class="scell ours"><span><b>Cards 1, 3 &amp; 5</b><br>side by side</span></div>
+            <div class="scell">other plugin</div>
+          </div>
+        </div>
+
+        <div class="share">
+          <h3>Quarter</h3>
+          <div class="screen-demo quad">
+            <div class="scell ours"><span><b>Card 1</b></span></div>
+            <div class="scell">other</div>
+            <div class="scell">other</div>
+            <div class="scell">other</div>
+          </div>
+        </div>
+      </div>
+      <p class="gcap">
+        The board takes whichever cell you assign it. Cards not listed for a shape are
+        simply not drawn.
+      </p>
+
+      <p>
+        A <strong>tall half</strong> — the board down one side of the screen — keeps the
+        left column, so cards&nbsp;1 and&nbsp;2, stacked and sharing the height evenly.
+        Turn card&nbsp;2 off and card&nbsp;1 takes the column on its own, with about twice
+        the departures.
+      </p>
+
+      <p>
+        A <strong>wide half</strong> — the board across the top or bottom — keeps the full
+        three-column width, so it shows the top card of each column: cards&nbsp;1,
+        3&nbsp;and&nbsp;5. There is no room beneath them for a second row, so cards 2, 4
+        and 6 are not drawn.
+      </p>
+
+      <p>
+        A <strong>quarter</strong> shows card&nbsp;1 alone. At that size three columns
+        would leave each destination too narrow to read, so the one card gets the whole
+        cell and the few departures that fit.
+      </p>
+
+      <p>
+        Everything else behaves the same in every shape. Walk time still hides departures
+        you cannot reach, routes still filter, and a station with trains both ways still
+        shows two columns side by side.
       </p>
     </section>
 
