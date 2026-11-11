@@ -949,3 +949,38 @@ describe("a mashup shows the cards it has, whatever their slots", () => {
     }
   });
 });
+
+/**
+ * The device pin must lose to a real device's own class.
+ *
+ * The framework declares `@layer tn--normalize, tn--elements,
+ * tn--components, tn--base, tn--device-overrides, tn--themes,
+ * tn--utilities` and puts every device block in `tn--base`. Unlayered CSS
+ * beats every layer, so an unlayered copy of one device's numbers wins on
+ * all hardware: a TRMNL X asks for 1040x780, is given the OG's 800x480,
+ * and draws the board in the corner of its panel. Declaring ours in the
+ * first and weakest layer is what keeps the preview pinned without
+ * overriding the device.
+ */
+describe("the device pin yields to real hardware", () => {
+  for (const name of LAYOUTS) {
+    test(`${name} declares its screen block inside a layer`, () => {
+      const liquid = source(name);
+      const block = /@layer\s+([a-zA-Z0-9_-]+)\s*\{[^}]*\.trmnl\s+\.screen\s*\{/.exec(
+        liquid
+      );
+
+      assert.ok(
+        block,
+        `${name} sets .trmnl .screen outside @layer, which beats every ` +
+          `device class and pins all hardware to one device's size`
+      );
+      assert.equal(
+        block[1],
+        "tn--normalize",
+        `${name} should use the framework's first (weakest) layer so any ` +
+          `device block in tn--base outranks it`
+      );
+    });
+  }
+});

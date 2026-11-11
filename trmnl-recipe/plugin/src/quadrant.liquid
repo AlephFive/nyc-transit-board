@@ -1,28 +1,34 @@
 <style>
-  /* Pin the preview to the device's own profile.
+  /* Give trmnlp's preview a device profile, without overriding a real one.
      ---------------------------------------------------------------
      TRMNL's framework carries a per-device block — `.screen--ogv2`,
-     `.screen--og`, `.screen--amazon_kindle_2024` — setting that
-     hardware's screen size, pixel ratio, gap scale and colour depth
-     on `.screen`. TRMNL stamps the right class on the wrapper when it
+     `.screen--v2`, `.screen--amazon_kindle_2024` — setting that
+     hardware's screen size, pixel ratio, gap scale and colour depth on
+     `.screen`. TRMNL stamps the right class on the wrapper when it
      renders for a device.
 
      `trmnlp` does not. It emits a bare `class="screen
      screen--fonts-trmnl"`, so a local build falls back to the `:root`
      defaults and renders a board no device will ever show. A `<style>`
      here cannot add a class to that wrapper, but it can set the same
-     variables the class would — before trmnlp takes its screenshot,
-     so the PNG gets them too.
+     variables the class would — before trmnlp takes its screenshot, so
+     the PNG gets them too.
+
+     **The layer is what makes this safe.** The framework declares
+     `@layer tn--normalize, tn--elements, tn--components, tn--base,
+     tn--device-overrides, tn--themes, tn--utilities` and puts every
+     device block in `tn--base`. Unlayered CSS beats all of them, so an
+     unlayered copy of one device's numbers wins on real hardware too:
+     a TRMNL X asks for 1040x780, gets 800x480, and draws the board in
+     the corner of its panel. Declaring these in `tn--normalize` — the
+     first layer, so the weakest — inverts that. trmnlp, which stamps
+     no device class, has nothing to override it and renders the OG.
+     A device whose class is present wins, and renders itself.
 
      Values copied verbatim from `.trmnl .screen--ogv2` in
      https://trmnl.com/css/3.4.4/plugins.css. `tests/layouts.test.ts`
      checks they still match, because a framework upgrade that retunes
      a device would otherwise drift silently.
-
-     For this device at scale Regular every value here already matches
-     what the fallback computes, so this block changes nothing today.
-     It is pinned so that a framework upgrade which retunes the device
-     surfaces as a test failure rather than as a surprise on the panel.
 
      **--quadrant-w/h are deliberately not copied.** The device sets
      them to 100%, but that resolves against trmnlp's own unsized
@@ -36,18 +42,20 @@
      not a device property. It is left alone deliberately: the default
      of 1 is scale Regular. If the panel is set to anything else, the
      preview will not match and this block is not the place to fix it. */
-  .trmnl .screen {
-    --screen-w: 800px;
-    --screen-h: 480px;
-    --screen-w-original: 800px;
-    --screen-h-original: 480px;
-    --pixel-ratio: 1;
-    --dither-pixel-ratio: 1;
-    --device-ui-scale: 1;
-    --gap-scale: 1;
-    --color-depth: 2;
-    --density-tier: 1x;
-    --device-name: "ogv2";
+  @layer tn--normalize {
+    .trmnl .screen {
+      --screen-w: 800px;
+      --screen-h: 480px;
+      --screen-w-original: 800px;
+      --screen-h-original: 480px;
+      --pixel-ratio: 1;
+      --dither-pixel-ratio: 1;
+      --device-ui-scale: 1;
+      --gap-scale: 1;
+      --color-depth: 2;
+      --density-tier: 1x;
+      --device-name: "ogv2";
+    }
   }
 </style>
 
