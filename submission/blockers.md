@@ -27,14 +27,19 @@ https://trmnl.com/plugin_settings/524413/edit
 It was pasted into a chat transcript repeatedly during development. Anyone
 holding it can modify the plugin. Rotate before the listing is public.
 
-## 4. `recipe/polling-url.txt` documents a design that was replaced
+## 4. Paste the polling body into the web UI after every push
 
-It describes the GET query-string protocol, `cardN_type` and `depends_on`.
-The plugin now POSTs JSON (`settings.yml:70-72`), there is no type field,
-and the picker searches all networks at once.
+`trmnlp push` uploads `polling_verb` but drops `polling_body` and
+`polling_headers`, so a pushed plugin POSTs an empty document. The Worker
+answers that with the demo board, which means every user sees Times Square
+instead of their own stations.
 
-Not reviewer-facing, but it is the most detailed protocol doc in the repo
-and it is wrong. Either retitle it as history or delete it.
+There is no query-string fallback to catch it — that parser is gone, and
+with it `recipe/polling-url.txt`, which documented it. After any push,
+paste `recipe/polling-body.json` into the plugin's Polling Body field and
+set the header `content-type: application/json`.
+
+https://trmnl.com/plugin_settings/524413/edit
 
 ## Known-open, and fine to ship
 
