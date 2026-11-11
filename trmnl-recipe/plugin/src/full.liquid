@@ -545,18 +545,37 @@
 {% comment %}
   Heights the Content Limiter trims to, measured against the rendered panel.
 
-  Scaled by device: a TRMNL X is 1404px tall against the OG's 480, so a budget
-  tuned for one leaves most of the other empty. `trmnl.device.height` is what
-  the platform reports, so the budget follows the hardware rather than being
-  guessed per model.
-
   The ratios come from the OG measurement — 374 of 480 usable for a full card,
   163 for one sharing a column — applied to whatever height the device has.
   A percentage point either way decides whether the last row lands whole or
   leaves a fragment, so these were tuned against the render rather than
   reasoned about.
 {% endcomment %}
+{% comment %}
+  The panel's height in CSS pixels, which is the unit the Content Limiter
+  measures in.
+
+  `trmnl.device.height` reports the panel's **device** pixels: 480 on an OG,
+  1404 on a TRMNL X. The framework's `--screen-h` is **CSS** pixels — 480 and
+  780 — and the gap between them is the device's pixel ratio, 1 and 1.8.
+
+  That distinction is invisible on an OG, where the two are equal, and it was
+  what pushed a card past its column on an X: a budget of 450 was read as 450
+  CSS px, which is 16 rows of a ~27px row rather than the 15 intended, so the
+  top card overran the half-column and clipped the one beneath it.
+
+  A lookup rather than arithmetic, because no Liquid variable carries the
+  pixel ratio — `trmnl.device` exposes `friendly_id`, `width`, `height`,
+  `orientation`, `percent_charged` and `wifi_strength`, and nothing else. An
+  unrecognised height is taken at face value, which is right for any device
+  whose ratio is 1 and errs towards fewer rows rather than an overrun on one
+  that scales.
+{% endcomment %}
 {% assign device_height = trmnl.device.height | default: 480 %}
+{% case device_height %}
+  {% when 1404 %}{% assign panel_height = 780 %}
+  {% else %}{% assign panel_height = device_height %}
+{% endcase %}
 
 {% comment %}
   A card's budget is a whole number of rows, not a percentage.
@@ -575,8 +594,8 @@
   number to keep in step.
 {% endcomment %}
 {% assign row_pitch = 30 %}
-{% assign full_rows = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
-{% assign split_rows = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
 {% assign split_height = split_rows | times: row_pitch %}
 

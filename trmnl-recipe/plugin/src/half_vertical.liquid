@@ -662,7 +662,31 @@
   fixed gap and title-bar height would not. Floored to whole rows so
   the cut lands between rows rather than through one.
 {% endcomment %}
+{% comment %}
+  The panel's height in CSS pixels, which is the unit the Content Limiter
+  measures in.
+
+  `trmnl.device.height` reports the panel's **device** pixels: 480 on an OG,
+  1404 on a TRMNL X. The framework's `--screen-h` is **CSS** pixels — 480 and
+  780 — and the gap between them is the device's pixel ratio, 1 and 1.8.
+
+  That distinction is invisible on an OG, where the two are equal, and it was
+  what pushed a card past its column on an X: a budget of 450 was read as 450
+  CSS px, which is 16 rows of a ~27px row rather than the 15 intended, so the
+  top card overran the half-column and clipped the one beneath it.
+
+  A lookup rather than arithmetic, because no Liquid variable carries the
+  pixel ratio — `trmnl.device` exposes `friendly_id`, `width`, `height`,
+  `orientation`, `percent_charged` and `wifi_strength`, and nothing else. An
+  unrecognised height is taken at face value, which is right for any device
+  whose ratio is 1 and errs towards fewer rows rather than an overrun on one
+  that scales.
+{% endcomment %}
 {% assign device_height = trmnl.device.height | default: 480 %}
+{% case device_height %}
+  {% when 1404 %}{% assign panel_height = 780 %}
+  {% else %}{% assign panel_height = device_height %}
+{% endcase %}
 {% assign row_pitch = 30 %}
 {% comment %}
   Two budgets, chosen per card, exactly as full.liquid does at its own
@@ -672,8 +696,8 @@
   the second is left with only its heading, which is what the panel
   showed.
 {% endcomment %}
-{% assign full_rows = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
-{% assign split_rows = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
 {% assign split_height = split_rows | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>

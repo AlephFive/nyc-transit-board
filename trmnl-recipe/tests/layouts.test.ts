@@ -984,3 +984,52 @@ describe("the device pin yields to real hardware", () => {
     });
   }
 });
+
+/**
+ * The row budget is measured in CSS pixels, not device pixels.
+ *
+ * `trmnl.device.height` reports device pixels — 480 on an OG, 1404 on a
+ * TRMNL X — while the Content Limiter measures the CSS pixels the
+ * framework lays out in, 480 and 780. The two are equal on an OG, so
+ * using one for the other is invisible there and overruns on an X: a
+ * budget of 450 bought 16 rows of a ~27px row where 15 were intended, and
+ * the top card of a column clipped the card beneath it.
+ */
+describe("the row budget converts device pixels to CSS pixels", () => {
+  for (const name of LAYOUTS) {
+    test(`${name} budgets against panel_height`, () => {
+      const liquid = source(name);
+
+      assert.doesNotMatch(
+        liquid,
+        /_rows\s*=\s*device_height/,
+        `${name} sizes its budget from device pixels, which overruns a ` +
+          `column on any device whose pixel ratio is not 1`
+      );
+      assert.match(
+        liquid,
+        /_(?:rows|fit)\s*=\s*panel_height/,
+        `${name} should budget from panel_height, the CSS-pixel height`
+      );
+    });
+  }
+
+  test("the conversion knows both shipped devices", () => {
+    // One lookup, spliced into every layout, so a device added in one
+    // place reaches all four.
+    for (const name of LAYOUTS) {
+      const liquid = source(name);
+      assert.match(
+        liquid,
+        /when 1404\s*%\}\s*\{%\s*assign panel_height = 780/,
+        `${name} should map the TRMNL X's 1404 device px to 780 CSS px`
+      );
+      assert.match(
+        liquid,
+        /assign panel_height = device_height/,
+        `${name} should fall back to the reported height for an ` +
+          `unrecognised device`
+      );
+    }
+  });
+});

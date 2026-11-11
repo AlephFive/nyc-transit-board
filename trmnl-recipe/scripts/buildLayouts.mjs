@@ -29,7 +29,7 @@
  *   node scripts/buildLayouts.mjs --check  # fail if any file is stale
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -80,8 +80,17 @@ function fill(template, values) {
  */
 function buildLayout(name, values) {
   const body = part(`${name}.body.liquid`);
-  return body.replace(/^[ \t]*\{%-? ?part: ([a-z-]+) ?-?%\}[ \t]*\r?\n/gm, (_, partName) =>
-    fill(part(`${partName}.css.liquid`), values)
+  return body.replace(
+    /^[ \t]*\{%-? ?part: ([a-z-]+) ?-?%\}[ \t]*\r?\n/gm,
+    (_, partName) => {
+      // A part is `<name>.css.liquid` when it carries styles and
+      // `<name>.liquid` when it is markup or Liquid logic.
+      const styles = `${partName}.css.liquid`;
+      const file = existsSync(resolve(PLUGIN, "parts", styles))
+        ? styles
+        : `${partName}.liquid`;
+      return fill(part(file), values);
+    }
   );
 }
 
