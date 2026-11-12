@@ -325,6 +325,45 @@ describe("the two configuration sources agree", () => {
     }
   });
 
+  test("every field the body interpolates is declared in both forms", () => {
+    // The pairing the file header describes, checked in both directions at
+    // once. `display settings are sent` asserted settings.yml declared a
+    // key and the body sent it — but `shippedBody` is the *pasted* body,
+    // so a key could be sent by recipe/polling-body.json while only
+    // settings.yml declared it. That is exactly how `destination_scale`
+    // came to be missing from form.yaml: the body asked for it, the
+    // published form had it, and the paste-by-hand form did not.
+    //
+    // Liquid resolves an undeclared variable to nil rather than failing,
+    // so the body still renders and the key arrives as null. The board
+    // then falls back to its default and nothing anywhere reports that
+    // the user was never offered the control.
+    const interpolated = new Set(
+      [...shippedBody.matchAll(/\{\{\s*([a-z0-9_]+)\s*\|/g)].map((m) => m[1]!)
+    );
+
+    // Names the body binds for itself, rather than form fields: the
+    // intermediates it assigns while splitting a station value, and the
+    // `for` variable it loops the stop IDs with.
+    const assigned = new Set([
+      ...[...shippedBody.matchAll(/assign\s+([a-z0-9_]+)\s*=/g)].map((m) => m[1]!),
+      ...[...shippedBody.matchAll(/for\s+([a-z0-9_]+)\s+in\s/g)].map((m) => m[1]!),
+    ]);
+
+    for (const name of interpolated) {
+      if (assigned.has(name)) continue;
+      for (const [file, yaml] of [
+        ["form.yaml", formYaml],
+        ["settings.yml", settingsYml],
+      ] as [string, string][]) {
+        assert.ok(
+          declaredFields(yaml).includes(name),
+          `the polling body interpolates ${name}, which ${file} never declares`
+        );
+      }
+    }
+  });
+
   test("no station field declares depends_on", () => {
     // xhrSelectSearch does not support it. The form-builder's own field
     // definitions list depends_on under xhrSelect only, and declaring it
