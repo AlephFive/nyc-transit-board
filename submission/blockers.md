@@ -51,9 +51,9 @@ accident and the next upload really would carry empty fields.
 
 `refresh_interval` on the server is a separate matter — see blocker 2.
 
-## 5. `author_bio` is 29 words; search listing wants 100+
+## 5. `author_bio` is 24 words; search listing wants 100+
 
-`settings.yml:174` carries the About field, correctly formatted with HTML
+`settings.yml:177` carries the About field, correctly formatted with HTML
 links to the guide and the repo. It is short.
 
 TRMNL's form-builder docs: "A Recipe needs at least 100 words there to
@@ -64,6 +64,29 @@ main thing a prospective installer reads.
 Not a blocker for approval — Chef only checks the field exists — but it is
 the difference between being findable and not. It is also where TRMNL
 expects setup guidance to live, rather than on the panel itself.
+
+## Cleared
+
+Audited against TRMNL's publishing checklist
+(https://trmnl.com/blog/plugin-recipe-publishing-tips) and fixed in
+`32520e3`:
+
+- **`transit` was not a valid category.** Their list is 29 slugs and does
+  not include it; the recipe now declares `travel`. This is the kind of
+  thing their automated pre-submission check catches, so it would have
+  cost a rejection round-trip.
+- **The `Direction` and `Destination text size` selects showed bare
+  values** (`1`/`2`, `0.8`/`0.9`/`1`). Both now use the documented
+  `- Label: value` form, so the stored values are unchanged.
+- **`recipe/form.yaml` had drifted from `settings.yml`**: it was missing
+  `destination_scale` entirely, and defaulted `urgent_threshold` to 10
+  against 5. The sync test only compared `card*` keynames, which is why
+  neither showed up; it now compares the Display fields and the defaults.
+
+Clean on every item in their Red Flags section: no async calls in markup,
+no `optional: false`, no inline `opacity`, no `label--gray`, no custom
+fonts, no JS at all, no charts, and the `title_bar` carries its own label
+rather than the default TRMNL logo. `trmnlp lint` passes.
 
 ## Known-open, and fine to ship
 
