@@ -119,19 +119,26 @@
   /* The name is what identifies a card, so it is never crushed below a
      readable minimum. At a complex carrying twelve bullets the strip is
      what yields, and clips; the name keeps its floor. */
-  /* The station name is the one element drawn a step below the rest of
-     the board on a TRMNL X.
+  /* The station name grows less than the rest of the board on a TRMNL X.
      ---------------------------------------------------------------
      That device scales everything up by `--device-ui-scale: 1.25` (see
-     `device-profile`), which is right for the rows a rider scans and too
-     much for the heading: a station name is the longest string on a card
-     and the one with no width to spare, so scaling it with the rest costs
-     characters off the end of names like "116 St-Columbia University"
-     without making the card easier to read.
+     `device-profile`), which is right for the rows a rider scans and more
+     than the heading needs: a station name is the longest string on a
+     card and the one with no width to spare, so taking the full step
+     costs characters off names like "116 St-Columbia University" without
+     making the card easier to read.
 
-     0.85 against that 1.25 leaves the name at ~1.06x its OG size: a
-     little larger in absolute terms, clearly smaller relative to the rows
-     beneath it, which is the hierarchy a heading wants.
+     1.1 against that 1.25 is a 0.88 factor: the name still grows with the
+     board, just less than the rows do.
+
+     **It is a ceiling, not a reduction.** Everything the name is read
+     against resolves to 16px before scaling — the column header
+     ("Manhattan", `label--small`), the row destination (`title--small`)
+     and the name itself. A factor below the device's puts the card's
+     title under its own column headers and row text, which reads as the
+     least important thing on the card rather than the most; at 0.85 it
+     rendered 17px against their 20px. Anything under 1 here is wrong for
+     that reason, and the only question is how far below 1.25 to stop.
 
      Scoped to the device, so the OG is untouched — its name is already in
      proportion to its own rows and nothing there needs correcting.
@@ -147,7 +154,7 @@
      rule that must win against a device has to outrank that layer. */
   @layer tn--device-overrides {
     .trmnl .screen--v2 .card-name {
-      font-size: 0.85em;
+      font-size: 1.1em;
     }
   }
   .card-name {

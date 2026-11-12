@@ -1053,6 +1053,56 @@ describe("the row budget converts device pixels to CSS pixels", () => {
  * the budget divides the panel by a row height the rows no longer have,
  * which overruns a card past its column.
  */
+/**
+ * The station name is a card's title, so it is never drawn below the text
+ * it heads.
+ *
+ * Everything it is read against resolves to 16px before scaling: the
+ * column header ("Manhattan", `label--small`), the row destination
+ * (`title--small`) and the name itself. On a TRMNL X the device scales
+ * all of them by 1.25, so a factor under 1 on the name alone sinks it
+ * beneath its own column headers and rows — shipped once at 0.85, which
+ * rendered the heading at 17px against their 20px and made it the least
+ * prominent text on the card.
+ *
+ * The factor is a ceiling, holding the name under the device's step
+ * because it is the longest string on a card. Below 1 it stops being a
+ * ceiling and becomes a demotion, so that is the boundary asserted.
+ */
+describe("the station name outranks the rows it heads", () => {
+  for (const name of LAYOUTS) {
+    test(`${name} does not draw the X's station name below its rows`, () => {
+      const liquid = source(name);
+
+      const scoped = liquid.match(
+        /\.screen--v2 \.card-name\s*\{\s*font-size:\s*([\d.]+)em/
+      );
+      if (!scoped) return; // no per-device size is the unscaled default
+
+      const factor = Number(scoped[1]);
+      assert.ok(
+        factor >= 1,
+        `${name} scales the X's station name by ${factor}, which draws a ` +
+          `card's title smaller than the column headers and row text ` +
+          `beneath it — every one of those is 16px before the device's ` +
+          `own 1.25, so anything under 1 here inverts the hierarchy`
+      );
+
+      const deviceScale = liquid.match(
+        /\.screen--v2\s*\{\s*--device-ui-scale:\s*([\d.]+)/
+      );
+      if (deviceScale) {
+        assert.ok(
+          factor <= Number(deviceScale[1]),
+          `${name} scales the station name by ${factor}, at or above the ` +
+            `device's own ${deviceScale[1]} — the name is the longest ` +
+            `string on a card, so it is held under that step, not past it`
+        );
+      }
+    });
+  }
+});
+
 describe("row pitch follows the device", () => {
   for (const name of LAYOUTS) {
     test(`${name} takes row_pitch from the shared part`, () => {
