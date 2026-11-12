@@ -32,12 +32,29 @@ already disagreed with the device once in this project.
 Fix it **in the web UI**, not by pushing: the push is what breaks it.
 https://trmnl.com/plugin_settings/524413/edit
 
-## 3. Rotate the TRMNL API key
+## 3. Set the categories in the web UI
+
+`settings.yml` declares `travel` and `productivity`, and the repo is
+right — but **`trmnlp` never transmits this field.** Verified by pushing
+and then pulling the server copy back: it carries the new select labels,
+and has no `categories` key at all.
+
+So the plugin currently has whatever categories the web UI holds, which
+has never been set deliberately. Set them at
+https://trmnl.com/plugin_settings/524413/edit — `travel` and
+`productivity`, since `transit` is not one of the 29 valid slugs
+(https://trmnl.com/api/categories).
+
+Same class of problem as blocker 2: a field the CLI does not round-trip,
+so the repo and the server can disagree indefinitely without anything
+failing.
+
+## 4. Rotate the TRMNL API key
 
 It was pasted into a chat transcript repeatedly during development. Anyone
 holding it can modify the plugin. Rotate before the listing is public.
 
-## 4. Restore settings.yml after every push
+## 5. Restore settings.yml after every push
 
 A push rewrites `plugin/src/settings.yml` in place and the rewrite is
 lossy: comments gone, `refresh_interval` reset to 1440, and
@@ -51,7 +68,7 @@ accident and the next upload really would carry empty fields.
 
 `refresh_interval` on the server is a separate matter — see blocker 2.
 
-## 5. `author_bio` is 24 words; search listing wants 100+
+## 6. `author_bio` is 24 words; search listing wants 100+
 
 `settings.yml:177` carries the About field, correctly formatted with HTML
 links to the guide and the repo. It is short.
@@ -72,9 +89,9 @@ Audited against TRMNL's publishing checklist
 `32520e3`:
 
 - **`transit` was not a valid category.** Their list is 29 slugs and does
-  not include it; the recipe now declares `travel`. This is the kind of
-  thing their automated pre-submission check catches, so it would have
-  cost a rejection round-trip.
+  not include it; the repo now declares `travel`. The plugin itself still
+  needs this set by hand — `trmnlp` does not transmit the field, so see
+  blocker 3.
 - **The `Direction` and `Destination text size` selects showed bare
   values** (`1`/`2`, `0.8`/`0.9`/`1`). Both now use the documented
   `- Label: value` form, so the stored values are unchanged.
