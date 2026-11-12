@@ -586,9 +586,8 @@
   fixed gap and title-bar height would not. Floored to whole rows so
   the cut lands between rows rather than through one.
 {% endcomment %}
-{% assign device_height = trmnl.device.height | default: 480 %}
-{% assign row_pitch = 30 %}
-{% assign rows_fit = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% part: panel-height %}
+{% assign rows_fit = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign card_height = rows_fit | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
     <div class="grid grid--cols-{{ used_columns }} h--full">

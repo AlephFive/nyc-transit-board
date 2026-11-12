@@ -1,28 +1,34 @@
 <style>
-  /* Pin the preview to the device's own profile.
+  /* Give trmnlp's preview a device profile, without overriding a real one.
      ---------------------------------------------------------------
      TRMNL's framework carries a per-device block — `.screen--ogv2`,
-     `.screen--og`, `.screen--amazon_kindle_2024` — setting that
-     hardware's screen size, pixel ratio, gap scale and colour depth
-     on `.screen`. TRMNL stamps the right class on the wrapper when it
+     `.screen--v2`, `.screen--amazon_kindle_2024` — setting that
+     hardware's screen size, pixel ratio, gap scale and colour depth on
+     `.screen`. TRMNL stamps the right class on the wrapper when it
      renders for a device.
 
      `trmnlp` does not. It emits a bare `class="screen
      screen--fonts-trmnl"`, so a local build falls back to the `:root`
      defaults and renders a board no device will ever show. A `<style>`
      here cannot add a class to that wrapper, but it can set the same
-     variables the class would — before trmnlp takes its screenshot,
-     so the PNG gets them too.
+     variables the class would — before trmnlp takes its screenshot, so
+     the PNG gets them too.
+
+     **The layer is what makes this safe.** The framework declares
+     `@layer tn--normalize, tn--elements, tn--components, tn--base,
+     tn--device-overrides, tn--themes, tn--utilities` and puts every
+     device block in `tn--base`. Unlayered CSS beats all of them, so an
+     unlayered copy of one device's numbers wins on real hardware too:
+     a TRMNL X asks for 1040x780, gets 800x480, and draws the board in
+     the corner of its panel. Declaring these in `tn--normalize` — the
+     first layer, so the weakest — inverts that. trmnlp, which stamps
+     no device class, has nothing to override it and renders the OG.
+     A device whose class is present wins, and renders itself.
 
      Values copied verbatim from `.trmnl .screen--ogv2` in
      https://trmnl.com/css/3.4.4/plugins.css. `tests/layouts.test.ts`
      checks they still match, because a framework upgrade that retunes
      a device would otherwise drift silently.
-
-     For this device at scale Regular every value here already matches
-     what the fallback computes, so this block changes nothing today.
-     It is pinned so that a framework upgrade which retunes the device
-     surfaces as a test failure rather than as a surprise on the panel.
 
      **--quadrant-w/h are deliberately not copied.** The device sets
      them to 100%, but that resolves against trmnlp's own unsized
@@ -36,18 +42,20 @@
      not a device property. It is left alone deliberately: the default
      of 1 is scale Regular. If the panel is set to anything else, the
      preview will not match and this block is not the place to fix it. */
-  .trmnl .screen {
-    --screen-w: 800px;
-    --screen-h: 480px;
-    --screen-w-original: 800px;
-    --screen-h-original: 480px;
-    --pixel-ratio: 1;
-    --dither-pixel-ratio: 1;
-    --device-ui-scale: 1;
-    --gap-scale: 1;
-    --color-depth: 2;
-    --density-tier: 1x;
-    --device-name: "ogv2";
+  @layer tn--normalize {
+    .trmnl .screen {
+      --screen-w: 800px;
+      --screen-h: 480px;
+      --screen-w-original: 800px;
+      --screen-h-original: 480px;
+      --pixel-ratio: 1;
+      --dither-pixel-ratio: 1;
+      --device-ui-scale: 1;
+      --gap-scale: 1;
+      --color-depth: 2;
+      --density-tier: 1x;
+      --device-name: "ogv2";
+    }
   }
 </style>
 
@@ -537,18 +545,55 @@
 {% comment %}
   Heights the Content Limiter trims to, measured against the rendered panel.
 
-  Scaled by device: a TRMNL X is 1404px tall against the OG's 480, so a budget
-  tuned for one leaves most of the other empty. `trmnl.device.height` is what
-  the platform reports, so the budget follows the hardware rather than being
-  guessed per model.
-
   The ratios come from the OG measurement — 374 of 480 usable for a full card,
   163 for one sharing a column — applied to whatever height the device has.
   A percentage point either way decides whether the last row lands whole or
   leaves a fragment, so these were tuned against the render rather than
   reasoned about.
 {% endcomment %}
+{% comment %}
+  The panel's height in CSS pixels, which is the unit the Content Limiter
+  measures in.
+
+  `trmnl.device.height` reports the panel's **device** pixels: 480 on an OG,
+  1404 on a TRMNL X. The framework's `--screen-h` is **CSS** pixels — 480 and
+  780 — and the gap between them is the device's pixel ratio, 1 and 1.8.
+
+  That distinction is invisible on an OG, where the two are equal, and it was
+  what pushed a card past its column on an X: a budget of 450 was read as 450
+  CSS px, which is 16 rows of a ~27px row rather than the 15 intended, so the
+  top card overran the half-column and clipped the one beneath it.
+
+  A lookup rather than arithmetic, because no Liquid variable carries the
+  pixel ratio — `trmnl.device` exposes `friendly_id`, `width`, `height`,
+  `orientation`, `percent_charged` and `wifi_strength`, and nothing else. An
+  unrecognised height is taken at face value, which is right for any device
+  whose ratio is 1 and errs towards fewer rows rather than an overrun on one
+  that scales.
+{% endcomment %}
+{% comment %}
+  `row_pitch` is the tallest thing in a row plus its padding and margin,
+  which the row styles express in `em` — so it follows the base font size
+  and is a different number of CSS pixels on each device. Measured from a
+  render: 30 on an OG, 24 on a TRMNL X, whose larger device pixels divide
+  down to smaller CSS ones.
+
+  A single constant is therefore wrong on one device by construction. At
+  30 on an X the budget bought four fewer rows than it paid for, and cards
+  stopped two thirds of the way down their half-column.
+
+  Both are per-device, so they live together: a new device is one `when`
+  with its two numbers.
+{% endcomment %}
 {% assign device_height = trmnl.device.height | default: 480 %}
+{% case device_height %}
+  {% when 1404 %}
+    {% assign panel_height = 780 %}
+    {% assign row_pitch = 24 %}
+  {% else %}
+    {% assign panel_height = device_height %}
+    {% assign row_pitch = 30 %}
+{% endcase %}
 
 {% comment %}
   A card's budget is a whole number of rows, not a percentage.
@@ -560,15 +605,13 @@
   a part-row, and the last entry on a card comes out visibly smaller than
   the rest.
 
-  `row_pitch` is the tallest thing in a row (the 20px clock, against a
-  21.6px badge box) plus the row's own padding and margin, rounded up. The
-  budget is the largest multiple of it that fits, so the cut always lands
-  between rows. Change a row's type size and this follows; it is the one
-  number to keep in step.
+  The budget is the largest whole multiple of `row_pitch` that fits, so the
+  cut always lands between rows. `row_pitch` comes from `panel-height`,
+  which carries it per device because the row styles are in `em` and a row
+  is a different number of CSS pixels on each.
 {% endcomment %}
-{% assign row_pitch = 30 %}
-{% assign full_rows = device_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
-{% assign split_rows = device_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
 {% assign split_height = split_rows | times: row_pitch %}
 

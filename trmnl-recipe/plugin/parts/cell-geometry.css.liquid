@@ -19,7 +19,22 @@
      `tests/layouts.test.ts` checks it still matches the framework.
 
      `.trmnl` is in the selector because the framework's rule is (0,3,0)
-     and a plainer one loses to it. */
+     and a plainer one loses to it.
+
+     **Declared in `tn--normalize`, the weakest layer, for the same
+     reason `--screen-h` is.** A real device sets `--{{VIEW}}-w/h: 100%`
+     in its own block, which the framework puts in `tn--base`; that beats
+     `tn--normalize`, so on hardware the device sizes its own cell and
+     this rule loses. trmnlp stamps no device class and the framework
+     declares no `:root` fallback for these two, so in the preview
+     nothing competes and this rule wins.
+
+     Unlayered, it won in both places — and then a device sized the cell
+     from these OG pixels while `--screen-h` was its own 780. The two
+     disagreed, the cell no longer matched its container, and every
+     mashup collapsed to a header and a footer with no rows. The pair
+     must resolve together: the device wins both, or neither. */
+  @layer tn--normalize {
   .trmnl .view--{{VIEW}} {
     /* The width needs the same pixel treatment as the height. The
        framework sets `--{{VIEW}}-w: 100%` on this device while its own
@@ -33,4 +48,5 @@
   }
   .trmnl .view--{{VIEW}} .layout {
     height: calc({{CELL_H}} - var(--title-bar-small-height));
+  }
   }
