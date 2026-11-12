@@ -57,55 +57,31 @@
       --device-name: "ogv2";
     }
   }
-  /* Scale the TRMNL X's type and spacing to its larger canvas.
+  /* The X's type is not scaled here; it steps a bitmap strike instead.
      ---------------------------------------------------------------
-     Both device blocks set `--device-ui-scale: 1`, so every type size —
-     each one `calc(<px> * var(--text-ui-scale))`, where `--text-ui-scale`
-     is `--device-ui-scale * --modifier-scale * --modifier-text-scale` —
-     comes out identical on both devices. The X's canvas is 1040x780 CSS
-     pixels against the OG's 800x480: 2.1x the area drawn at the same type
-     size, which is the "mostly content, not whitespace" check TRMNL's
-     reviewers apply.
+     The X's canvas is 1040x780 CSS pixels against the OG's 800x480, and
+     the framework draws type at the same size on both — every device
+     block sets `--device-ui-scale: 1`, so a 16px destination stays 16px
+     on a board a third wider. That whitespace is real, and raising this
+     variable is the wrong cure for it.
 
-     One variable moves all of it because the layouts size everything
-     downstream in `em`: bullets at 1.35em, row padding at 0.1/0.3em, row
-     margins at 0.14em. Raising the scale grows glyphs, badges and the
-     space around them together, in proportion, with no per-element list
-     to keep in step.
+     `screen--fonts-trmnl` maps the type classes onto bitmap faces, and a
+     bitmap face has its pixels drawn for one size: TRMNL12, TRMNL16,
+     TRMNL21. Every class sits on one of those. A scale multiplies them
+     all at once and lands each between strikes — at 1.25, 16px became
+     20px, which no face is drawn for — so the renderer resamples a
+     bitmap rather than drawing one. Two destinations in a single card,
+     same classes, then rendered at visibly different weights and cap
+     heights, because a resampled bitmap depends on its glyphs and the
+     width it is given.
 
-     **In `tn--device-overrides`, which beats `tn--base`.** That is the
-     opposite of the pin above, and deliberately so: the pin supplies a
-     profile only where none exists and must lose to a real device, while
-     this one corrects a value the device itself sets and must win. The
-     framework declares the layer immediately after `tn--base` and uses it
-     for one 2-bit title-bar rule, so nothing here competes.
+     The size step therefore lives in the layouts, as a class change per
+     element: `title--small` to `title--base` moves TRMNL16 to TRMNL21,
+     a real 1.31x with every pixel where the face intends it.
 
-     `--modifier-scale` and `--modifier-text-scale` are untouched: those
-     carry the user's own size choice, and multiply with this rather than
-     being overridden by it, so a panel set to Large still steps up from
-     here.
-
-     1.25 is the 1040/800 width ratio, rounded down to a value that
-     divides cleanly. Type and row pitch grow together, so a larger scale
-     buys legibility and costs rows: measured against `panel-height`'s
-     budget, a full column on an X draws 23 rows at scale 1 and 18 at
-     1.25, and a split column 11 against 8.
-
-     1.3 yields the same 18 and 8 — the row count is a floor division, so
-     it steps rather than slides — and packs them marginally tighter (558
-     of the 561px budget against 540). The extra 5% was not taken because
-     the rows it would enlarge are already the width-critical ones: a
-     split subway column clips its destination at scale 1, and every
-     increment here clips it further. 1.25 is the smaller of two steps
-     that cost the same rows.
-
-     `row_pitch` in `panel-height` is measured at this scale. The two are
-     one tuning and must move together. */
-  @layer tn--device-overrides {
-    .trmnl .screen--v2 {
-      --device-ui-scale: 1.25;
-    }
-  }
+     The framework agrees: of every device it ships, all but one Kindle
+     set `--device-ui-scale: 1`. Type stays on its strikes rather than
+     following the panel. */
 </style>
 
 <style>
@@ -227,42 +203,64 @@
   /* The name is what identifies a card, so it is never crushed below a
      readable minimum. At a complex carrying twelve bullets the strip is
      what yields, and clips; the name keeps its floor. */
-  /* The station name grows less than the rest of the board on a TRMNL X.
+  /* The TRMNL X draws the heading and the rows one bitmap strike up.
      ---------------------------------------------------------------
-     That device scales everything up by `--device-ui-scale: 1.25` (see
-     `device-profile`), which is right for the rows a rider scans and more
-     than the heading needs: a station name is the longest string on a
-     card and the one with no width to spare, so taking the full step
-     costs characters off names like "116 St-Columbia University" without
-     making the card easier to read.
+     `screen--fonts-trmnl` maps these classes onto bitmap faces, and a
+     bitmap face has its pixels drawn for one size. The framework ships
+     TRMNL12, TRMNL16 and TRMNL21, and every class under this theme sits
+     on exactly one: `label--small` is TRMNL12 at 12px, `title--small`
+     TRMNL16 at 16px, `title` (`title--base`) TRMNL21 at 21px.
 
-     1.1 against that 1.25 is a 0.88 factor: the name still grows with the
-     board, just less than the rows do.
+     So text is made larger by moving to the next face, not by scaling
+     the one in use. Scaling lands between strikes — a 1.25 device scale
+     put 16px at 20px, which no face is drawn for — and the renderer then
+     resamples a bitmap, which is what made two destinations in one card
+     come out at visibly different weights and cap heights. See
+     `device-profile` for why that scale is gone.
 
-     **It is a ceiling, not a reduction.** Everything the name is read
-     against resolves to 16px before scaling — the column header
-     ("Manhattan", `label--small`), the row destination (`title--small`)
-     and the name itself. A factor below the device's puts the card's
-     title under its own column headers and row text, which reads as the
-     least important thing on the card rather than the most; at 0.85 it
-     rendered 17px against their 20px. Anything under 1 here is wrong for
-     that reason, and the only question is how far below 1.25 to stop.
+     `--title-font-size` resolves to TRMNL21's 21px: 1.31x the drawn
+     glyph of `title--small`, every pixel where the face intends it.
 
-     Scoped to the device, so the OG is untouched — its name is already in
-     proportion to its own rows and nothing there needs correcting.
+     The heading takes the whole strike and the rows keep their 0.86 step
+     under it, so the two move up together and the heading stays above
+     the rows it heads by the ratio it has on an OG. Scaling the name
+     alone is what inverted that hierarchy once already.
 
-     An `em` factor rather than a smaller framework class because
-     `title--small` is already the floor: every `title--*` step bottoms
-     out at 16px, and the faces below it (`description`, `label`) are
-     different bitmap cuts, which `layouts.test.ts` forbids on row text
-     because they render visibly unlike their neighbours.
+     Scoped to the device, so the OG is untouched: at 800x480 the 16px
+     face is the right one and nothing there needs correcting.
 
-     In `tn--device-overrides` for the same reason the scale itself is:
-     the framework sets `--title-small-font-size` in `tn--base`, and a
-     rule that must win against a device has to outrank that layer. */
+     In `tn--device-overrides`, which outranks the `tn--base` layer the
+     framework sets these sizes in — the opposite of the preview pin in
+     `device-profile`, which must lose to a real device. */
   @layer tn--device-overrides {
+    .trmnl .screen--v2 .card-name,
+    .trmnl .screen--v2 .row-dest,
+    .trmnl .screen--v2 .row-empty {
+      font-family: var(--title-font-family);
+      line-height: var(--title-line-height);
+    }
+    /* The rows keep the 0.86 step under the heading that `.row-dest`
+       carries on every device, and the user's own `--dest-scale` still
+       multiplies it. */
+    .trmnl .screen--v2 .row-dest,
+    .trmnl .screen--v2 .row-empty {
+      font-size: calc(var(--title-font-size) * 0.86 * var(--dest-scale, 1));
+    }
     .trmnl .screen--v2 .card-name {
-      font-size: 1.1em;
+      font-size: var(--title-font-size);
+    }
+    /* The gap between the station name and the bullet strip is the
+       framework's `gap--small`, 7px times `--gap-scale` and
+       `--content-scale` — neither of which follows the type. So a
+       heading stepped from TRMNL16 to TRMNL21 keeps the spacing of the
+       smaller face, and `.card-name` clips hard against the bullets: the
+       name has `overflow: hidden`, so its text runs to the edge of its
+       box and the 7px sits outside the clip, not inside it.
+
+       Scaled by the same 21/16 the type moved, so the heading reads at
+       the X's size the way it does at the OG's. */
+    .trmnl .screen--v2 .card-heading {
+      gap: calc(var(--gap-small) * 21 / 16);
     }
   }
   .card-name {
@@ -667,12 +665,15 @@
   30 on an X the budget bought four fewer rows than it paid for, and cards
   stopped two thirds of the way down their half-column.
 
-  The X's 30 is the OG's 24 taken up by the `--device-ui-scale: 1.25` that
-  `device-profile` sets for that device: type and the `em` spacing around
-  it scale together, so the pitch scales with them. The two numbers are
-  one tuning — change the scale there and this must follow, or the budget
-  divides the panel by a pitch the rows no longer have and a card overruns
-  its column.
+  The X's 39 is the OG's 30 taken up by the ratio of their faces. Both
+  devices draw the rows at `--device-ui-scale: 1`; what differs is which
+  bitmap strike the row's text sits on — TRMNL16 at 16px on an OG,
+  TRMNL21 at 21px on an X, which the layouts select per device. The row
+  styles are `em`, so the pitch follows: 30 * 21/16 = 39.
+
+  The strike and the pitch are one tuning. Promote a row to a different
+  face without moving this and the budget divides the panel by a row
+  height the rows no longer have, which overruns a card past its column.
 
   Both are per-device, so they live together: a new device is one `when`
   with its two numbers.
@@ -681,7 +682,7 @@
 {% case device_height %}
   {% when 1404 %}
     {% assign panel_height = 780 %}
-    {% assign row_pitch = 30 %}
+    {% assign row_pitch = 39 %}
   {% else %}
     {% assign panel_height = device_height %}
     {% assign row_pitch = 30 %}
@@ -873,7 +874,7 @@
                   that no longer matches the type size, and the row stays one
                   line tall because the strip cannot wrap.
                 {% endcomment %}
-                <div class="flex flex--row flex--center-y gap--small">
+                <div class="card-heading flex flex--row flex--center-y gap--small">
                   <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
                   {% if card.b %}
                     <div class="bullet-strip{% if card.y != "subway" %} bullet-strip--tag{% endif %}">

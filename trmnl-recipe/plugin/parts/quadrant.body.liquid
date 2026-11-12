@@ -126,42 +126,64 @@
      no gap — rows space themselves with their own margins — so the only
      separation is the 26px heading's line box, measured at 11px.
      Tightening that line box closes the difference. */
-  /* The station name grows less than the rest of the board on a TRMNL X.
+  /* The TRMNL X draws the heading and the rows one bitmap strike up.
      ---------------------------------------------------------------
-     That device scales everything up by `--device-ui-scale: 1.25` (see
-     `device-profile`), which is right for the rows a rider scans and more
-     than the heading needs: a station name is the longest string on a
-     card and the one with no width to spare, so taking the full step
-     costs characters off names like "116 St-Columbia University" without
-     making the card easier to read.
+     `screen--fonts-trmnl` maps these classes onto bitmap faces, and a
+     bitmap face has its pixels drawn for one size. The framework ships
+     TRMNL12, TRMNL16 and TRMNL21, and every class under this theme sits
+     on exactly one: `label--small` is TRMNL12 at 12px, `title--small`
+     TRMNL16 at 16px, `title` (`title--base`) TRMNL21 at 21px.
 
-     1.1 against that 1.25 is a 0.88 factor: the name still grows with the
-     board, just less than the rows do.
+     So text is made larger by moving to the next face, not by scaling
+     the one in use. Scaling lands between strikes — a 1.25 device scale
+     put 16px at 20px, which no face is drawn for — and the renderer then
+     resamples a bitmap, which is what made two destinations in one card
+     come out at visibly different weights and cap heights. See
+     `device-profile` for why that scale is gone.
 
-     **It is a ceiling, not a reduction.** Everything the name is read
-     against resolves to 16px before scaling — the column header
-     ("Manhattan", `label--small`), the row destination (`title--small`)
-     and the name itself. A factor below the device's puts the card's
-     title under its own column headers and row text, which reads as the
-     least important thing on the card rather than the most; at 0.85 it
-     rendered 17px against their 20px. Anything under 1 here is wrong for
-     that reason, and the only question is how far below 1.25 to stop.
+     `--title-font-size` resolves to TRMNL21's 21px: 1.31x the drawn
+     glyph of `title--small`, every pixel where the face intends it.
 
-     Scoped to the device, so the OG is untouched — its name is already in
-     proportion to its own rows and nothing there needs correcting.
+     The heading takes the whole strike and the rows keep their 0.86 step
+     under it, so the two move up together and the heading stays above
+     the rows it heads by the ratio it has on an OG. Scaling the name
+     alone is what inverted that hierarchy once already.
 
-     An `em` factor rather than a smaller framework class because
-     `title--small` is already the floor: every `title--*` step bottoms
-     out at 16px, and the faces below it (`description`, `label`) are
-     different bitmap cuts, which `layouts.test.ts` forbids on row text
-     because they render visibly unlike their neighbours.
+     Scoped to the device, so the OG is untouched: at 800x480 the 16px
+     face is the right one and nothing there needs correcting.
 
-     In `tn--device-overrides` for the same reason the scale itself is:
-     the framework sets `--title-small-font-size` in `tn--base`, and a
-     rule that must win against a device has to outrank that layer. */
+     In `tn--device-overrides`, which outranks the `tn--base` layer the
+     framework sets these sizes in — the opposite of the preview pin in
+     `device-profile`, which must lose to a real device. */
   @layer tn--device-overrides {
+    .trmnl .screen--v2 .card-name,
+    .trmnl .screen--v2 .row-dest,
+    .trmnl .screen--v2 .row-empty {
+      font-family: var(--title-font-family);
+      line-height: var(--title-line-height);
+    }
+    /* The rows keep the 0.86 step under the heading that `.row-dest`
+       carries on every device, and the user's own `--dest-scale` still
+       multiplies it. */
+    .trmnl .screen--v2 .row-dest,
+    .trmnl .screen--v2 .row-empty {
+      font-size: calc(var(--title-font-size) * 0.86 * var(--dest-scale, 1));
+    }
     .trmnl .screen--v2 .card-name {
-      font-size: 1.1em;
+      font-size: var(--title-font-size);
+    }
+    /* The gap between the station name and the bullet strip is the
+       framework's `gap--small`, 7px times `--gap-scale` and
+       `--content-scale` — neither of which follows the type. So a
+       heading stepped from TRMNL16 to TRMNL21 keeps the spacing of the
+       smaller face, and `.card-name` clips hard against the bullets: the
+       name has `overflow: hidden`, so its text runs to the edge of its
+       box and the 7px sits outside the clip, not inside it.
+
+       Scaled by the same 21/16 the type moved, so the heading reads at
+       the X's size the way it does at the OG's. */
+    .trmnl .screen--v2 .card-heading {
+      gap: calc(var(--gap-small) * 21 / 16);
     }
   }
   .card-name {
@@ -644,7 +666,7 @@
           {% assign stack_height = full_height %}
         <div class="w--full">
 
-        <div class="flex flex--row flex--center-y gap--small">
+        <div class="card-heading flex flex--row flex--center-y gap--small">
           <span class="card-name title title--small md:title--base lg:title--large grow">{{ card.n }}</span>
           {% if card.b %}
             {% comment %}

@@ -617,6 +617,7 @@ describe("every class exists in the framework", () => {
     "row-time",
     "bullet-strip",
     "card-name",
+    "card-heading",
     "footer-stamp",
     "footer-label",
     "row-line--urgent",
@@ -1035,74 +1036,99 @@ describe("the row budget converts device pixels to CSS pixels", () => {
 });
 
 /**
+ * The TRMNL X steps its text to the next bitmap strike, never scales it.
+ *
+ * `screen--fonts-trmnl` maps the type classes onto bitmap faces, and a
+ * bitmap face has its pixels drawn for one size: TRMNL12, TRMNL16 and
+ * TRMNL21. Every class sits on exactly one of them.
+ *
+ * So a device must not carry a `--device-ui-scale` other than 1 under
+ * this theme. It multiplies every class at once and lands each between
+ * strikes — at 1.25 the 16px faces rendered at 20px, which none is drawn
+ * for — and the renderer resamples a bitmap instead of drawing one. That
+ * shipped once: two destinations in a single card, identical classes,
+ * came out at visibly different weights and cap heights, because what a
+ * resampled bitmap looks like depends on its glyphs and the width it is
+ * given.
+ *
+ * The size step belongs in the layouts as a class change per element,
+ * which is what the rules below assert.
+ */
+describe("the X's type lands on a bitmap strike", () => {
+  for (const name of LAYOUTS) {
+    test(`${name} does not scale the X's type off its strikes`, () => {
+      const liquid = source(name);
+
+      // Every declaration, not the first: the preview pin in
+      // `device-profile` legitimately sets 1 on `.trmnl .screen`, and a
+      // first-match test is satisfied by it while a 1.25 sits further
+      // down the file. That is exactly how this test passed against a
+      // deliberately reintroduced scale when it was written.
+      const declared = [
+        ...liquid.matchAll(/--device-ui-scale:\s*([\d.]+)/g),
+      ].map((m) => Number(m[1]));
+
+      const offStrike = declared.filter((value) => value !== 1);
+      assert.deepEqual(
+        offStrike,
+        [],
+        `${name} declares --device-ui-scale ${offStrike.join(", ")}. The ` +
+          `bitmap faces are drawn at 12, 16 and 21px, so any scale but 1 ` +
+          `lands them between strikes and the renderer resamples rather ` +
+          `than draws — step a class instead`
+      );
+    });
+
+    test(`${name} steps the X's rows and heading to TRMNL21`, () => {
+      const liquid = source(name);
+
+      // The promotion is written against the framework's own variable,
+      // so it follows a retune of the face rather than pinning 21px.
+      for (const sel of ["card-name", "row-dest"]) {
+        assert.match(
+          liquid,
+          new RegExp(
+            `\.screen--v2 \.${sel}[^}]*font-size:[^;]*--title-font-size`
+          ),
+          `${name} should draw the X's .${sel} at --title-font-size ` +
+            `(TRMNL21), the next strike above title--small's TRMNL16`
+        );
+      }
+    });
+
+    test(`${name} keeps the X's rows a step under its heading`, () => {
+      const liquid = source(name);
+
+      // Both move up together. The heading takes the whole strike and
+      // the rows keep the 0.86 they carry on every device, so the
+      // hierarchy a reader sees is the one an OG has. Scaling the name
+      // on its own is what inverted it once.
+      assert.match(
+        liquid,
+        /\.screen--v2 \.row-dest[\s\S]{0,200}?font-size:[^;]*--title-font-size\)\s*\*\s*0\.86/,
+        `${name} should keep the X's destination at 0.86 of the strike ` +
+          `its station name takes, as it is on an OG`
+      );
+    });
+  }
+});
+
+/**
  * Row pitch is per device, because the row styles are written in `em`.
  *
- * A row's height follows the base font size, so it is a different number
+ * A row's height follows its own font size, so it is a different number
  * of CSS pixels on each device. A single constant is wrong on one device
  * by construction: at 30 on an X the budget once bought four fewer rows
  * than it paid for, and a card stopped two thirds of the way down its
  * half-column.
  *
- * Both devices now land on 30 for different reasons, which is a
- * coincidence of the numbers rather than one value shared. The OG draws a
- * 30px row at `--device-ui-scale: 1`; the X draws the same 24px row it
- * always did, taken up by the 1.25 that `device-profile` sets for it.
+ * Both devices draw at `--device-ui-scale: 1`; what differs is the strike
+ * the row's text sits on — TRMNL16 at 16px on an OG, TRMNL21 at 21px on
+ * an X. The pitch follows that ratio: 30 * 21/16 = 39.
  *
- * That makes the pitch and the scale one tuning held in two files, so the
- * pair is asserted together below: change the scale without the pitch and
- * the budget divides the panel by a row height the rows no longer have,
- * which overruns a card past its column.
+ * The strike and the pitch are one tuning held in two files, so the pair
+ * is asserted together below.
  */
-/**
- * The station name is a card's title, so it is never drawn below the text
- * it heads.
- *
- * Everything it is read against resolves to 16px before scaling: the
- * column header ("Manhattan", `label--small`), the row destination
- * (`title--small`) and the name itself. On a TRMNL X the device scales
- * all of them by 1.25, so a factor under 1 on the name alone sinks it
- * beneath its own column headers and rows — shipped once at 0.85, which
- * rendered the heading at 17px against their 20px and made it the least
- * prominent text on the card.
- *
- * The factor is a ceiling, holding the name under the device's step
- * because it is the longest string on a card. Below 1 it stops being a
- * ceiling and becomes a demotion, so that is the boundary asserted.
- */
-describe("the station name outranks the rows it heads", () => {
-  for (const name of LAYOUTS) {
-    test(`${name} does not draw the X's station name below its rows`, () => {
-      const liquid = source(name);
-
-      const scoped = liquid.match(
-        /\.screen--v2 \.card-name\s*\{\s*font-size:\s*([\d.]+)em/
-      );
-      if (!scoped) return; // no per-device size is the unscaled default
-
-      const factor = Number(scoped[1]);
-      assert.ok(
-        factor >= 1,
-        `${name} scales the X's station name by ${factor}, which draws a ` +
-          `card's title smaller than the column headers and row text ` +
-          `beneath it — every one of those is 16px before the device's ` +
-          `own 1.25, so anything under 1 here inverts the hierarchy`
-      );
-
-      const deviceScale = liquid.match(
-        /\.screen--v2\s*\{\s*--device-ui-scale:\s*([\d.]+)/
-      );
-      if (deviceScale) {
-        assert.ok(
-          factor <= Number(deviceScale[1]),
-          `${name} scales the station name by ${factor}, at or above the ` +
-            `device's own ${deviceScale[1]} — the name is the longest ` +
-            `string on a card, so it is held under that step, not past it`
-        );
-      }
-    });
-  }
-});
-
 describe("row pitch follows the device", () => {
   for (const name of LAYOUTS) {
     test(`${name} takes row_pitch from the shared part`, () => {
@@ -1119,25 +1145,21 @@ describe("row pitch follows the device", () => {
 
       assert.match(
         liquid,
-        /when 1404\s*%\}\s*\{%\s*assign panel_height = 780\s*%\}\s*\{%\s*assign row_pitch = 30/,
-        `${name} should pair the TRMNL X's 780 CSS px with the 30px row ` +
-          `its 1.25 type scale draws`
+        /when 1404\s*%\}\s*\{%\s*assign panel_height = 780\s*%\}\s*\{%\s*assign row_pitch = 39/,
+        `${name} should pair the TRMNL X's 780 CSS px with the 39px row ` +
+          `its TRMNL21 strike draws`
       );
     });
 
-    test(`${name} keeps the X's row pitch in step with its type scale`, () => {
+    test(`${name} keeps the X's row pitch in step with its strike`, () => {
       const liquid = source(name);
 
-      // The pitch is the OG's 24px row times the scale the device profile
-      // sets. Read both out of the layout and check they still agree,
-      // rather than pinning the product twice and letting one drift.
-      const scale = liquid.match(
-        /\.screen--v2\s*\{\s*--device-ui-scale:\s*([\d.]+)/
-      );
-      assert.ok(
-        scale,
-        `${name} should scale the TRMNL X's type in its device profile`
-      );
+      // The pitch is the OG's 30px row times the ratio of the two
+      // strikes. Derive it here rather than pinning the product twice
+      // and letting one of the pair drift away from the other.
+      const OG_PITCH = 30;
+      const OG_STRIKE = 16; // title--small, TRMNL16
+      const X_STRIKE = 21; // title--base, TRMNL21
 
       const pitch = liquid.match(
         /when 1404\s*%\}\s*\{%\s*assign panel_height = 780\s*%\}\s*\{%\s*assign row_pitch = (\d+)/
@@ -1146,10 +1168,10 @@ describe("row pitch follows the device", () => {
 
       assert.equal(
         Number(pitch[1]),
-        Math.round(24 * Number(scale[1])),
-        `${name} scales the X's type by ${scale[1]} but budgets a ` +
-          `${pitch[1]}px row, so the Content Limiter divides the panel by ` +
-          `a height its rows do not have`
+        Math.round((OG_PITCH * X_STRIKE) / OG_STRIKE),
+        `${name} draws the X's rows at TRMNL21 but budgets a ` +
+          `${pitch[1]}px row, so the Content Limiter divides the panel ` +
+          `by a height its rows do not have`
       );
     });
 
