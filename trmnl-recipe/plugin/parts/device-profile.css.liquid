@@ -57,4 +57,53 @@
       --device-name: "ogv2";
     }
   }
+  /* Scale the TRMNL X's type and spacing to its larger canvas.
+     ---------------------------------------------------------------
+     Both device blocks set `--device-ui-scale: 1`, so every type size —
+     each one `calc(<px> * var(--text-ui-scale))`, where `--text-ui-scale`
+     is `--device-ui-scale * --modifier-scale * --modifier-text-scale` —
+     comes out identical on both devices. The X's canvas is 1040x780 CSS
+     pixels against the OG's 800x480: 2.1x the area drawn at the same type
+     size, which is the "mostly content, not whitespace" check TRMNL's
+     reviewers apply.
+
+     One variable moves all of it because the layouts size everything
+     downstream in `em`: bullets at 1.35em, row padding at 0.1/0.3em, row
+     margins at 0.14em. Raising the scale grows glyphs, badges and the
+     space around them together, in proportion, with no per-element list
+     to keep in step.
+
+     **In `tn--device-overrides`, which beats `tn--base`.** That is the
+     opposite of the pin above, and deliberately so: the pin supplies a
+     profile only where none exists and must lose to a real device, while
+     this one corrects a value the device itself sets and must win. The
+     framework declares the layer immediately after `tn--base` and uses it
+     for one 2-bit title-bar rule, so nothing here competes.
+
+     `--modifier-scale` and `--modifier-text-scale` are untouched: those
+     carry the user's own size choice, and multiply with this rather than
+     being overridden by it, so a panel set to Large still steps up from
+     here.
+
+     1.25 is the 1040/800 width ratio, rounded down to a value that
+     divides cleanly. Type and row pitch grow together, so a larger scale
+     buys legibility and costs rows: measured against `panel-height`'s
+     budget, a full column on an X draws 23 rows at scale 1 and 18 at
+     1.25, and a split column 11 against 8.
+
+     1.3 yields the same 18 and 8 — the row count is a floor division, so
+     it steps rather than slides — and packs them marginally tighter (558
+     of the 561px budget against 540). The extra 5% was not taken because
+     the rows it would enlarge are already the width-critical ones: a
+     split subway column clips its destination at scale 1, and every
+     increment here clips it further. 1.25 is the smaller of two steps
+     that cost the same rows.
+
+     `row_pitch` in `panel-height` is measured at this scale. The two are
+     one tuning and must move together. */
+  @layer tn--device-overrides {
+    .trmnl .screen--v2 {
+      --device-ui-scale: 1.25;
+    }
+  }
 </style>

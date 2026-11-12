@@ -1038,11 +1038,20 @@ describe("the row budget converts device pixels to CSS pixels", () => {
  * Row pitch is per device, because the row styles are written in `em`.
  *
  * A row's height follows the base font size, so it is a different number
- * of CSS pixels on each device — measured at 30 on an OG and 24 on a
- * TRMNL X, whose larger device pixels divide down to smaller CSS ones. A
- * single constant is wrong on one device by construction: at 30 on an X
- * the budget bought four fewer rows than it paid for, and a card stopped
- * two thirds of the way down its half-column.
+ * of CSS pixels on each device. A single constant is wrong on one device
+ * by construction: at 30 on an X the budget once bought four fewer rows
+ * than it paid for, and a card stopped two thirds of the way down its
+ * half-column.
+ *
+ * Both devices now land on 30 for different reasons, which is a
+ * coincidence of the numbers rather than one value shared. The OG draws a
+ * 30px row at `--device-ui-scale: 1`; the X draws the same 24px row it
+ * always did, taken up by the 1.25 that `device-profile` sets for it.
+ *
+ * That makes the pitch and the scale one tuning held in two files, so the
+ * pair is asserted together below: change the scale without the pitch and
+ * the budget divides the panel by a row height the rows no longer have,
+ * which overruns a card past its column.
  */
 describe("row pitch follows the device", () => {
   for (const name of LAYOUTS) {
@@ -1060,8 +1069,37 @@ describe("row pitch follows the device", () => {
 
       assert.match(
         liquid,
-        /when 1404\s*%\}\s*\{%\s*assign panel_height = 780\s*%\}\s*\{%\s*assign row_pitch = 24/,
-        `${name} should pair the TRMNL X's 780 CSS px with its 24px row`
+        /when 1404\s*%\}\s*\{%\s*assign panel_height = 780\s*%\}\s*\{%\s*assign row_pitch = 30/,
+        `${name} should pair the TRMNL X's 780 CSS px with the 30px row ` +
+          `its 1.25 type scale draws`
+      );
+    });
+
+    test(`${name} keeps the X's row pitch in step with its type scale`, () => {
+      const liquid = source(name);
+
+      // The pitch is the OG's 24px row times the scale the device profile
+      // sets. Read both out of the layout and check they still agree,
+      // rather than pinning the product twice and letting one drift.
+      const scale = liquid.match(
+        /\.screen--v2\s*\{\s*--device-ui-scale:\s*([\d.]+)/
+      );
+      assert.ok(
+        scale,
+        `${name} should scale the TRMNL X's type in its device profile`
+      );
+
+      const pitch = liquid.match(
+        /when 1404\s*%\}\s*\{%\s*assign panel_height = 780\s*%\}\s*\{%\s*assign row_pitch = (\d+)/
+      );
+      assert.ok(pitch, `${name} should set the X's row pitch`);
+
+      assert.equal(
+        Number(pitch[1]),
+        Math.round(24 * Number(scale[1])),
+        `${name} scales the X's type by ${scale[1]} but budgets a ` +
+          `${pitch[1]}px row, so the Content Limiter divides the panel by ` +
+          `a height its rows do not have`
       );
     });
 

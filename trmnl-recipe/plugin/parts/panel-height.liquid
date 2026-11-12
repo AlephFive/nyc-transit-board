@@ -21,13 +21,18 @@
 {% comment %}
   `row_pitch` is the tallest thing in a row plus its padding and margin,
   which the row styles express in `em` — so it follows the base font size
-  and is a different number of CSS pixels on each device. Measured from a
-  render: 30 on an OG, 24 on a TRMNL X, whose larger device pixels divide
-  down to smaller CSS ones.
+  and is a different number of CSS pixels on each device.
 
   A single constant is therefore wrong on one device by construction. At
   30 on an X the budget bought four fewer rows than it paid for, and cards
   stopped two thirds of the way down their half-column.
+
+  The X's 30 is the OG's 24 taken up by the `--device-ui-scale: 1.25` that
+  `device-profile` sets for that device: type and the `em` spacing around
+  it scale together, so the pitch scales with them. The two numbers are
+  one tuning — change the scale there and this must follow, or the budget
+  divides the panel by a pitch the rows no longer have and a card overruns
+  its column.
 
   Both are per-device, so they live together: a new device is one `when`
   with its two numbers.
@@ -36,7 +41,7 @@
 {% case device_height %}
   {% when 1404 %}
     {% assign panel_height = 780 %}
-    {% assign row_pitch = 24 %}
+    {% assign row_pitch = 30 %}
   {% else %}
     {% assign panel_height = device_height %}
     {% assign row_pitch = 30 %}
