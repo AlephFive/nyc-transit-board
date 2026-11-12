@@ -51,11 +51,11 @@
        same space, and reads too small: the corners that carry a diamond's
        width hold no ink, so equal bounding boxes look unequal.
 
-       0.85 puts the diamond's box at 26px against the circle's 22px — a
-       deliberate 4px over its share, which is what it takes for the two to
+       0.80 puts the diamond's box at 25px against the circle's 22px — a
+       deliberate 3px over its share, which is what it takes for the two to
        read as the same size. The cost is ~2px of the destination on a
        split subway column, the narrowest place a row is drawn. */
-    transform: rotate(45deg) scale(0.85);
+    transform: rotate(45deg) scale(0.80);
   }
   /* Counter-rotate the glyph so the number stays upright in the diamond. */
   .bullet--express > span {
@@ -64,9 +64,9 @@
        matches the one in a circular bullet. The diamond is the thing drawn
        larger here; its number is not, and a number that grew with it would
        make the express read as a different size of route rather than as the
-       same route running express. 0.85 x 1.2976 holds the glyph at the size
-       a circle's carries. */
-    transform: rotate(-45deg) scale(1.2976);
+       same route running express. 0.80 x 1.3788 holds the glyph where it
+       sits today, unchanged by the diamond shrinking around it. */
+    transform: rotate(-45deg) scale(1.3788);
   }
   /* Two letters in a circle sized for one would touch the curve on both
      sides, so SI - the only two-character bullet in the system - is set
