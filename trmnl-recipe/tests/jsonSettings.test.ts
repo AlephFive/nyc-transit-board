@@ -268,13 +268,49 @@ describe("a body that makes no sense still renders a board", () => {
     assert.equal(boardFromJson({ cards }).cards.length, 6);
   });
 
-  test("every card hidden shows them anyway", () => {
-    // TRMNL sends an explicit false for a checkbox never touched, so
-    // hiding every card cannot be told apart from the untouched state.
+  test("an untouched checkbox leaves a card visible", () => {
+    // The value that matters, because it is what decides whether hiding
+    // every card can be taken at face value. A checkbox nobody touched
+    // arrives absent or empty, not as false.
+    for (const visible of [undefined, "", "  "]) {
+      const board = boardFromJson({
+        cards: [{ station: "subway:117", visible }],
+      });
+      assert.equal(board.isDemo, false, `visible: ${JSON.stringify(visible)}`);
+      assert.deepEqual(board.cards[0]!.stopIds, ["117"]);
+    }
+  });
+
+  test("hiding some cards hides exactly those", () => {
     const board = boardFromJson({
-      cards: [{ station: "subway:117", visible: false }],
+      cards: [
+        { station: "subway:117", visible: true },
+        { station: "subway:725", visible: false },
+        { station: "lirr:102", visible: false },
+      ],
     });
-    assert.equal(board.isDemo, false);
-    assert.deepEqual(board.cards[0].stopIds, ["117"]);
+    assert.equal(board.cards.length, 1);
+    assert.deepEqual(board.cards[0]!.stopIds, ["117"]);
+  });
+
+  test("hiding every card is honoured, and says so", () => {
+    // It used to restore them all, on the belief that TRMNL sent an
+    // explicit false for an untouched checkbox. It does not — an
+    // untouched box arrives absent or empty (see above), so the only way
+    // to reach false on every card is to untick all six by hand. The
+    // board that overrode that choice showed six cards the user had just
+    // switched off, with no way to turn them off.
+    //
+    // The demo board stands in instead, and its footer reads "Example
+    // board · choose your stations in settings", which is the truth: no
+    // card is configured to show.
+    const board = boardFromJson({
+      cards: [
+        { station: "subway:117", visible: false },
+        { station: "subway:725", visible: false },
+      ],
+    });
+    assert.equal(board.isDemo, true);
+    assert.ok(board.cards.length > 0, "a panel must render something");
   });
 });

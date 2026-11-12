@@ -219,21 +219,17 @@ export function boardFromJson(body: unknown): BoardSettings {
   const entries = Array.isArray(board.cards) ? board.cards : [];
 
   const cards: CardSettings[] = [];
-  /** Parsed but hidden, kept in case every card was — see below. */
-  const hidden: CardSettings[] = [];
 
   entries.slice(0, MAX_SLOTS).forEach((entry, index) => {
     const card = parseCard(index + 1, (entry ?? {}) as JsonCard);
     if (!card) return;
+    // An untouched checkbox arrives absent or empty, which `asBoolean`
+    // reads as visible. Reaching false here therefore took unticking the
+    // box, and unticking every box is a choice to honour rather than
+    // second-guess: the board falls through to the demo, whose own footer
+    // says the stations are an example.
     if (asBoolean((entry as JsonCard).visible, true)) cards.push(card);
-    else hidden.push(card);
   });
-
-  // Every configured card hidden is not a board anyone built on purpose:
-  // TRMNL sends an explicit false for a checkbox never touched, whatever
-  // the field's declared default. Hiding some cards is honoured; hiding
-  // all of them cannot be told apart from the untouched state.
-  if (cards.length === 0 && hidden.length > 0) cards.push(...hidden);
 
   return {
     cards: cards.length > 0 ? cards : DEMO_CARDS,
