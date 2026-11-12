@@ -16,12 +16,12 @@
 - keyname: card1_visible
   field_type: boolean
   name: Show this card
+  description: Hide a card without losing its settings
   group: Column 1 · Row 1
   optional: true
   default: true
   help_text: >-
-    Untick to hide the card without losing its settings. Its column-mate
-    then fills the column and shows about twice as many departures.
+    Its column-mate then fills the column and shows twice as many departures.
 
 - keyname: card1_station
   field_type: xhrSelectSearch
@@ -31,21 +31,22 @@
   optional: true
   endpoint: https://REPLACE_ME.workers.dev/api/stations?slot=1
   http_verb: GET
-  help_text: >
-    Stations that share a complex are listed once and show every platform.
-    A bus corner is listed once and shows both directions.
+  help_text: >-
+    A station complex is listed once and covers every platform. A bus corner
+    is listed once and covers both sides of the street.
 
 - keyname: card1_routes
   field_type: string
-  name: Only these lines
+  name: Routes
+  description: Leave blank for everything that stops here
   group: Column 1 · Row 1
   optional: true
-  placeholder: All lines at this station
-  help_text: >
-    Comma-separated, e.g. "1,2,3". Leave blank for every line. Use the letter
-    or number you read on the train: S covers all three shuttles, and asking
-    for 7 includes the 7 express. Put the same station on two cards with
-    different lines to split a big complex.
+  placeholder: 1,2,3
+  help_text: >-
+    Comma separated, written the way you say them: subway lines (1,2,3 or
+    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
+    names work, so "hud" finds Hudson. Most useful at a complex like Times
+    Square, where a card would otherwise carry twelve lines.
 
 - keyname: card1_direction
   field_type: select
@@ -59,37 +60,36 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    Both shows the two directions side by side. Pick one and it gets the
-    whole card. The columns are the card's own left and right, and the
-    heading above each says where it goes. On a railroad the first column
-    is towards the city and the second is away from it.
+    The headings on the card name where each column goes — Uptown, Downtown,
+    Flushing-Main St. Pick the one you ride. On a railroad the first column is
+    city-bound; at a terminal like Grand Central it is empty.
 
 - keyname: card1_walk
   field_type: number
   name: Walk time (minutes)
+  description: Departures you could not reach in this time are hidden
   group: Column 1 · Row 1
   optional: true
   default: 5
   placeholder: 5
-  help_text: Departures you could not reach in this time are hidden.
 
 - keyname: card1_title
   field_type: string
   name: Card heading
+  description: Leave blank to use the station name
   group: Column 1 · Row 1
   optional: true
-  placeholder: Defaults to the station name
-  help_text: Leave blank to use the station name.
+  placeholder: Station name
 
 - keyname: card2_visible
   field_type: boolean
   name: Show this card
+  description: Hide a card without losing its settings
   group: Column 1 · Row 2
   optional: true
   default: true
   help_text: >-
-    Untick to hide the card without losing its settings. Its column-mate
-    then fills the column and shows about twice as many departures.
+    Its column-mate then fills the column and shows twice as many departures.
 
 - keyname: card2_station
   field_type: xhrSelectSearch
@@ -99,21 +99,22 @@
   optional: true
   endpoint: https://REPLACE_ME.workers.dev/api/stations?slot=2
   http_verb: GET
-  help_text: >
-    Stations that share a complex are listed once and show every platform.
-    A bus corner is listed once and shows both directions.
+  help_text: >-
+    A station complex is listed once and covers every platform. A bus corner
+    is listed once and covers both sides of the street.
 
 - keyname: card2_routes
   field_type: string
-  name: Only these lines
+  name: Routes
+  description: Leave blank for everything that stops here
   group: Column 1 · Row 2
   optional: true
-  placeholder: All lines at this station
-  help_text: >
-    Comma-separated, e.g. "1,2,3". Leave blank for every line. Use the letter
-    or number you read on the train: S covers all three shuttles, and asking
-    for 7 includes the 7 express. Put the same station on two cards with
-    different lines to split a big complex.
+  placeholder: 1,2,3
+  help_text: >-
+    Comma separated, written the way you say them: subway lines (1,2,3 or
+    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
+    names work, so "hud" finds Hudson. Most useful at a complex like Times
+    Square, where a card would otherwise carry twelve lines.
 
 - keyname: card2_direction
   field_type: select
@@ -127,37 +128,36 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    Both shows the two directions side by side. Pick one and it gets the
-    whole card. The columns are the card's own left and right, and the
-    heading above each says where it goes. On a railroad the first column
-    is towards the city and the second is away from it.
+    The headings on the card name where each column goes — Uptown, Downtown,
+    Flushing-Main St. Pick the one you ride. On a railroad the first column is
+    city-bound; at a terminal like Grand Central it is empty.
 
 - keyname: card2_walk
   field_type: number
   name: Walk time (minutes)
+  description: Departures you could not reach in this time are hidden
   group: Column 1 · Row 2
   optional: true
   default: 5
   placeholder: 5
-  help_text: Departures you could not reach in this time are hidden.
 
 - keyname: card2_title
   field_type: string
   name: Card heading
+  description: Leave blank to use the station name
   group: Column 1 · Row 2
   optional: true
-  placeholder: Defaults to the station name
-  help_text: Leave blank to use the station name.
+  placeholder: Station name
 
 - keyname: card3_visible
   field_type: boolean
   name: Show this card
+  description: Hide a card without losing its settings
   group: Column 2 · Row 1
   optional: true
   default: true
   help_text: >-
-    Untick to hide the card without losing its settings. Its column-mate
-    then fills the column and shows about twice as many departures.
+    Its column-mate then fills the column and shows twice as many departures.
 
 - keyname: card3_station
   field_type: xhrSelectSearch
@@ -167,21 +167,22 @@
   optional: true
   endpoint: https://REPLACE_ME.workers.dev/api/stations?slot=3
   http_verb: GET
-  help_text: >
-    Stations that share a complex are listed once and show every platform.
-    A bus corner is listed once and shows both directions.
+  help_text: >-
+    A station complex is listed once and covers every platform. A bus corner
+    is listed once and covers both sides of the street.
 
 - keyname: card3_routes
   field_type: string
-  name: Only these lines
+  name: Routes
+  description: Leave blank for everything that stops here
   group: Column 2 · Row 1
   optional: true
-  placeholder: All lines at this station
-  help_text: >
-    Comma-separated, e.g. "1,2,3". Leave blank for every line. Use the letter
-    or number you read on the train: S covers all three shuttles, and asking
-    for 7 includes the 7 express. Put the same station on two cards with
-    different lines to split a big complex.
+  placeholder: 1,2,3
+  help_text: >-
+    Comma separated, written the way you say them: subway lines (1,2,3 or
+    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
+    names work, so "hud" finds Hudson. Most useful at a complex like Times
+    Square, where a card would otherwise carry twelve lines.
 
 - keyname: card3_direction
   field_type: select
@@ -195,37 +196,36 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    Both shows the two directions side by side. Pick one and it gets the
-    whole card. The columns are the card's own left and right, and the
-    heading above each says where it goes. On a railroad the first column
-    is towards the city and the second is away from it.
+    The headings on the card name where each column goes — Uptown, Downtown,
+    Flushing-Main St. Pick the one you ride. On a railroad the first column is
+    city-bound; at a terminal like Grand Central it is empty.
 
 - keyname: card3_walk
   field_type: number
   name: Walk time (minutes)
+  description: Departures you could not reach in this time are hidden
   group: Column 2 · Row 1
   optional: true
   default: 5
   placeholder: 5
-  help_text: Departures you could not reach in this time are hidden.
 
 - keyname: card3_title
   field_type: string
   name: Card heading
+  description: Leave blank to use the station name
   group: Column 2 · Row 1
   optional: true
-  placeholder: Defaults to the station name
-  help_text: Leave blank to use the station name.
+  placeholder: Station name
 
 - keyname: card4_visible
   field_type: boolean
   name: Show this card
+  description: Hide a card without losing its settings
   group: Column 2 · Row 2
   optional: true
   default: true
   help_text: >-
-    Untick to hide the card without losing its settings. Its column-mate
-    then fills the column and shows about twice as many departures.
+    Its column-mate then fills the column and shows twice as many departures.
 
 - keyname: card4_station
   field_type: xhrSelectSearch
@@ -235,21 +235,22 @@
   optional: true
   endpoint: https://REPLACE_ME.workers.dev/api/stations?slot=4
   http_verb: GET
-  help_text: >
-    Stations that share a complex are listed once and show every platform.
-    A bus corner is listed once and shows both directions.
+  help_text: >-
+    A station complex is listed once and covers every platform. A bus corner
+    is listed once and covers both sides of the street.
 
 - keyname: card4_routes
   field_type: string
-  name: Only these lines
+  name: Routes
+  description: Leave blank for everything that stops here
   group: Column 2 · Row 2
   optional: true
-  placeholder: All lines at this station
-  help_text: >
-    Comma-separated, e.g. "1,2,3". Leave blank for every line. Use the letter
-    or number you read on the train: S covers all three shuttles, and asking
-    for 7 includes the 7 express. Put the same station on two cards with
-    different lines to split a big complex.
+  placeholder: 1,2,3
+  help_text: >-
+    Comma separated, written the way you say them: subway lines (1,2,3 or
+    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
+    names work, so "hud" finds Hudson. Most useful at a complex like Times
+    Square, where a card would otherwise carry twelve lines.
 
 - keyname: card4_direction
   field_type: select
@@ -263,37 +264,36 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    Both shows the two directions side by side. Pick one and it gets the
-    whole card. The columns are the card's own left and right, and the
-    heading above each says where it goes. On a railroad the first column
-    is towards the city and the second is away from it.
+    The headings on the card name where each column goes — Uptown, Downtown,
+    Flushing-Main St. Pick the one you ride. On a railroad the first column is
+    city-bound; at a terminal like Grand Central it is empty.
 
 - keyname: card4_walk
   field_type: number
   name: Walk time (minutes)
+  description: Departures you could not reach in this time are hidden
   group: Column 2 · Row 2
   optional: true
   default: 5
   placeholder: 5
-  help_text: Departures you could not reach in this time are hidden.
 
 - keyname: card4_title
   field_type: string
   name: Card heading
+  description: Leave blank to use the station name
   group: Column 2 · Row 2
   optional: true
-  placeholder: Defaults to the station name
-  help_text: Leave blank to use the station name.
+  placeholder: Station name
 
 - keyname: card5_visible
   field_type: boolean
   name: Show this card
+  description: Hide a card without losing its settings
   group: Column 3 · Row 1
   optional: true
   default: true
   help_text: >-
-    Untick to hide the card without losing its settings. Its column-mate
-    then fills the column and shows about twice as many departures.
+    Its column-mate then fills the column and shows twice as many departures.
 
 - keyname: card5_station
   field_type: xhrSelectSearch
@@ -303,21 +303,22 @@
   optional: true
   endpoint: https://REPLACE_ME.workers.dev/api/stations?slot=5
   http_verb: GET
-  help_text: >
-    Stations that share a complex are listed once and show every platform.
-    A bus corner is listed once and shows both directions.
+  help_text: >-
+    A station complex is listed once and covers every platform. A bus corner
+    is listed once and covers both sides of the street.
 
 - keyname: card5_routes
   field_type: string
-  name: Only these lines
+  name: Routes
+  description: Leave blank for everything that stops here
   group: Column 3 · Row 1
   optional: true
-  placeholder: All lines at this station
-  help_text: >
-    Comma-separated, e.g. "1,2,3". Leave blank for every line. Use the letter
-    or number you read on the train: S covers all three shuttles, and asking
-    for 7 includes the 7 express. Put the same station on two cards with
-    different lines to split a big complex.
+  placeholder: 1,2,3
+  help_text: >-
+    Comma separated, written the way you say them: subway lines (1,2,3 or
+    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
+    names work, so "hud" finds Hudson. Most useful at a complex like Times
+    Square, where a card would otherwise carry twelve lines.
 
 - keyname: card5_direction
   field_type: select
@@ -331,37 +332,36 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    Both shows the two directions side by side. Pick one and it gets the
-    whole card. The columns are the card's own left and right, and the
-    heading above each says where it goes. On a railroad the first column
-    is towards the city and the second is away from it.
+    The headings on the card name where each column goes — Uptown, Downtown,
+    Flushing-Main St. Pick the one you ride. On a railroad the first column is
+    city-bound; at a terminal like Grand Central it is empty.
 
 - keyname: card5_walk
   field_type: number
   name: Walk time (minutes)
+  description: Departures you could not reach in this time are hidden
   group: Column 3 · Row 1
   optional: true
   default: 5
   placeholder: 5
-  help_text: Departures you could not reach in this time are hidden.
 
 - keyname: card5_title
   field_type: string
   name: Card heading
+  description: Leave blank to use the station name
   group: Column 3 · Row 1
   optional: true
-  placeholder: Defaults to the station name
-  help_text: Leave blank to use the station name.
+  placeholder: Station name
 
 - keyname: card6_visible
   field_type: boolean
   name: Show this card
+  description: Hide a card without losing its settings
   group: Column 3 · Row 2
   optional: true
   default: true
   help_text: >-
-    Untick to hide the card without losing its settings. Its column-mate
-    then fills the column and shows about twice as many departures.
+    Its column-mate then fills the column and shows twice as many departures.
 
 - keyname: card6_station
   field_type: xhrSelectSearch
@@ -371,21 +371,22 @@
   optional: true
   endpoint: https://REPLACE_ME.workers.dev/api/stations?slot=6
   http_verb: GET
-  help_text: >
-    Stations that share a complex are listed once and show every platform.
-    A bus corner is listed once and shows both directions.
+  help_text: >-
+    A station complex is listed once and covers every platform. A bus corner
+    is listed once and covers both sides of the street.
 
 - keyname: card6_routes
   field_type: string
-  name: Only these lines
+  name: Routes
+  description: Leave blank for everything that stops here
   group: Column 3 · Row 2
   optional: true
-  placeholder: All lines at this station
-  help_text: >
-    Comma-separated, e.g. "1,2,3". Leave blank for every line. Use the letter
-    or number you read on the train: S covers all three shuttles, and asking
-    for 7 includes the 7 express. Put the same station on two cards with
-    different lines to split a big complex.
+  placeholder: 1,2,3
+  help_text: >-
+    Comma separated, written the way you say them: subway lines (1,2,3 or
+    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
+    names work, so "hud" finds Hudson. Most useful at a complex like Times
+    Square, where a card would otherwise carry twelve lines.
 
 - keyname: card6_direction
   field_type: select
@@ -399,31 +400,31 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    Both shows the two directions side by side. Pick one and it gets the
-    whole card. The columns are the card's own left and right, and the
-    heading above each says where it goes. On a railroad the first column
-    is towards the city and the second is away from it.
+    The headings on the card name where each column goes — Uptown, Downtown,
+    Flushing-Main St. Pick the one you ride. On a railroad the first column is
+    city-bound; at a terminal like Grand Central it is empty.
 
 - keyname: card6_walk
   field_type: number
   name: Walk time (minutes)
+  description: Departures you could not reach in this time are hidden
   group: Column 3 · Row 2
   optional: true
   default: 5
   placeholder: 5
-  help_text: Departures you could not reach in this time are hidden.
 
 - keyname: card6_title
   field_type: string
   name: Card heading
+  description: Leave blank to use the station name
   group: Column 3 · Row 2
   optional: true
-  placeholder: Defaults to the station name
-  help_text: Leave blank to use the station name.
+  placeholder: Station name
 
 - keyname: use_24_hour
   field_type: boolean
   name: 24-hour clock
+  description: 16:45 rather than 4:45 PM
   group: Display
   optional: true
   default: true
@@ -431,18 +432,19 @@
 - keyname: urgent_threshold
   field_type: number
   name: Highlight departures within (minutes)
+  description: Counted from when you would need to leave
   group: Display
   optional: true
   default: 5
   placeholder: 5
-  help_text: >
-    Rows this close to your leave time are shown inverted. Counted after walk
-    time is subtracted, so it is how long you have before you must go.
+  help_text: >-
+    Highlighted rows are drawn white on black. Lower this if most of the board
+    ends up highlighted — once half the rows are marked, nothing stands out.
 
 - keyname: destination_scale
   field_type: select
   name: Destination text size
-  description: Smaller shows more of a long station name
+  description: Smaller fits more of a long station name
   group: Display
   optional: true
   options:
@@ -452,7 +454,6 @@
     - Larger: "1.1"
     - Largest: "1.2"
   default: "1"
-  help_text: >
-    How large the "to" station is drawn on each row. Smaller shows more of a
-    long name before it clips. The route badge and the clock keep their size
-    either way.
+  help_text: >-
+    Sets the size of the destination on every row. Smaller fits more of a long
+    name before it clips; larger reads better from a distance.
