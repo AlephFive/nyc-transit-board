@@ -51,7 +51,7 @@ recipe_overview: >-
 
 # Up to three, for the plugin directory.
 categories:
-  - transit
+  - travel
   - productivity
 
 strategy: polling
@@ -227,22 +227,24 @@ custom_fields:
   - keyname: card1_direction
     field_type: select
     name: Direction
-    description: Leave blank to show both
+    description: Both, or give one direction the whole card
     group: Column 1 · Row 1
     optional: true
     options:
-      - "1"
-      - "2"
+      - Both directions: ""
+      - First column only: "1"
+      - Second column only: "2"
+    default: ""
     help_text: >-
-      Blank shows both directions side by side. Pick one and it gets the
+      Both shows the two directions side by side. Pick one and it gets the
       whole card, which is worth doing when you only ever ride one way
       from this stop.
 
-      On a railroad, 1 is towards the city and 2 is away from it — so at
-      a terminal like Grand Central, 1 is empty, because nothing departs
-      towards the city from there. On subway and bus, 1 and 2 are simply
-      the card's left and right columns; the heading above each says
-      where it goes, so pick one and check.
+      The columns are the card's own left and right, and the heading above
+      each says where it goes — so pick one and check the board. On a
+      railroad the first column is towards the city and the second is away
+      from it, which means at a terminal like Grand Central the first is
+      empty: nothing departs Grand Central towards the city.
 
       Ignored on a ferry card. A landing has no inbound and outbound —
       the Rockaway route runs south and east — so the operator does not
@@ -309,22 +311,24 @@ custom_fields:
   - keyname: card2_direction
     field_type: select
     name: Direction
-    description: Leave blank to show both
+    description: Both, or give one direction the whole card
     group: Column 1 · Row 2
     optional: true
     options:
-      - "1"
-      - "2"
+      - Both directions: ""
+      - First column only: "1"
+      - Second column only: "2"
+    default: ""
     help_text: >-
-      Blank shows both directions side by side. Pick one and it gets the
+      Both shows the two directions side by side. Pick one and it gets the
       whole card, which is worth doing when you only ever ride one way
       from this stop.
 
-      On a railroad, 1 is towards the city and 2 is away from it — so at
-      a terminal like Grand Central, 1 is empty, because nothing departs
-      towards the city from there. On subway and bus, 1 and 2 are simply
-      the card's left and right columns; the heading above each says
-      where it goes, so pick one and check.
+      The columns are the card's own left and right, and the heading above
+      each says where it goes — so pick one and check the board. On a
+      railroad the first column is towards the city and the second is away
+      from it, which means at a terminal like Grand Central the first is
+      empty: nothing departs Grand Central towards the city.
 
       Ignored on a ferry card. A landing has no inbound and outbound —
       the Rockaway route runs south and east — so the operator does not
@@ -391,22 +395,24 @@ custom_fields:
   - keyname: card3_direction
     field_type: select
     name: Direction
-    description: Leave blank to show both
+    description: Both, or give one direction the whole card
     group: Column 2 · Row 1
     optional: true
     options:
-      - "1"
-      - "2"
+      - Both directions: ""
+      - First column only: "1"
+      - Second column only: "2"
+    default: ""
     help_text: >-
-      Blank shows both directions side by side. Pick one and it gets the
+      Both shows the two directions side by side. Pick one and it gets the
       whole card, which is worth doing when you only ever ride one way
       from this stop.
 
-      On a railroad, 1 is towards the city and 2 is away from it — so at
-      a terminal like Grand Central, 1 is empty, because nothing departs
-      towards the city from there. On subway and bus, 1 and 2 are simply
-      the card's left and right columns; the heading above each says
-      where it goes, so pick one and check.
+      The columns are the card's own left and right, and the heading above
+      each says where it goes — so pick one and check the board. On a
+      railroad the first column is towards the city and the second is away
+      from it, which means at a terminal like Grand Central the first is
+      empty: nothing departs Grand Central towards the city.
 
       Ignored on a ferry card. A landing has no inbound and outbound —
       the Rockaway route runs south and east — so the operator does not
@@ -473,22 +479,24 @@ custom_fields:
   - keyname: card4_direction
     field_type: select
     name: Direction
-    description: Leave blank to show both
+    description: Both, or give one direction the whole card
     group: Column 2 · Row 2
     optional: true
     options:
-      - "1"
-      - "2"
+      - Both directions: ""
+      - First column only: "1"
+      - Second column only: "2"
+    default: ""
     help_text: >-
-      Blank shows both directions side by side. Pick one and it gets the
+      Both shows the two directions side by side. Pick one and it gets the
       whole card, which is worth doing when you only ever ride one way
       from this stop.
 
-      On a railroad, 1 is towards the city and 2 is away from it — so at
-      a terminal like Grand Central, 1 is empty, because nothing departs
-      towards the city from there. On subway and bus, 1 and 2 are simply
-      the card's left and right columns; the heading above each says
-      where it goes, so pick one and check.
+      The columns are the card's own left and right, and the heading above
+      each says where it goes — so pick one and check the board. On a
+      railroad the first column is towards the city and the second is away
+      from it, which means at a terminal like Grand Central the first is
+      empty: nothing departs Grand Central towards the city.
 
       Ignored on a ferry card. A landing has no inbound and outbound —
       the Rockaway route runs south and east — so the operator does not
@@ -555,22 +563,24 @@ custom_fields:
   - keyname: card5_direction
     field_type: select
     name: Direction
-    description: Leave blank to show both
+    description: Both, or give one direction the whole card
     group: Column 3 · Row 1
     optional: true
     options:
-      - "1"
-      - "2"
+      - Both directions: ""
+      - First column only: "1"
+      - Second column only: "2"
+    default: ""
     help_text: >-
-      Blank shows both directions side by side. Pick one and it gets the
+      Both shows the two directions side by side. Pick one and it gets the
       whole card, which is worth doing when you only ever ride one way
       from this stop.
 
-      On a railroad, 1 is towards the city and 2 is away from it — so at
-      a terminal like Grand Central, 1 is empty, because nothing departs
-      towards the city from there. On subway and bus, 1 and 2 are simply
-      the card's left and right columns; the heading above each says
-      where it goes, so pick one and check.
+      The columns are the card's own left and right, and the heading above
+      each says where it goes — so pick one and check the board. On a
+      railroad the first column is towards the city and the second is away
+      from it, which means at a terminal like Grand Central the first is
+      empty: nothing departs Grand Central towards the city.
 
       Ignored on a ferry card. A landing has no inbound and outbound —
       the Rockaway route runs south and east — so the operator does not
@@ -637,22 +647,24 @@ custom_fields:
   - keyname: card6_direction
     field_type: select
     name: Direction
-    description: Leave blank to show both
+    description: Both, or give one direction the whole card
     group: Column 3 · Row 2
     optional: true
     options:
-      - "1"
-      - "2"
+      - Both directions: ""
+      - First column only: "1"
+      - Second column only: "2"
+    default: ""
     help_text: >-
-      Blank shows both directions side by side. Pick one and it gets the
+      Both shows the two directions side by side. Pick one and it gets the
       whole card, which is worth doing when you only ever ride one way
       from this stop.
 
-      On a railroad, 1 is towards the city and 2 is away from it — so at
-      a terminal like Grand Central, 1 is empty, because nothing departs
-      towards the city from there. On subway and bus, 1 and 2 are simply
-      the card's left and right columns; the heading above each says
-      where it goes, so pick one and check.
+      The columns are the card's own left and right, and the heading above
+      each says where it goes — so pick one and check the board. On a
+      railroad the first column is towards the city and the second is away
+      from it, which means at a terminal like Grand Central the first is
+      empty: nothing departs Grand Central towards the city.
 
       Ignored on a ferry card. A landing has no inbound and outbound —
       the Rockaway route runs south and east — so the operator does not
@@ -711,11 +723,11 @@ custom_fields:
     group: Display
     optional: true
     options:
-      - 0.8
-      - 0.9
-      - "1"
-      - 1.1
-      - 1.2
+      - Smallest: "0.8"
+      - Smaller: "0.9"
+      - Normal: "1"
+      - Larger: "1.1"
+      - Largest: "1.2"
     default: "1"
     help_text: >
       How large the "to" station is drawn on each row. Smaller shows more of

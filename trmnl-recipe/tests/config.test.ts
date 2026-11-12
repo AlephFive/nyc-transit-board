@@ -281,6 +281,50 @@ describe("the two configuration sources agree", () => {
     assert.deepEqual(cardFields(formYaml), cardFields(settingsYml));
   });
 
+  test("both forms declare the same display fields", () => {
+    // The card fields are compared above, which left the Display group
+    // unguarded: `destination_scale` existed only in settings.yml, so
+    // anyone configuring the plugin by pasting form.yaml got no text-size
+    // control at all. A missing field is invisible — the board renders at
+    // the default and nothing reports that the knob was never offered.
+    //
+    // `author_bio` is excluded: it is the store listing's own field, which
+    // a hand-configured install has no use for.
+    const displayFields = (yaml: string) =>
+      declaredFields(yaml)
+        .filter((key) => !/^card\d_/.test(key) && key !== "author_bio")
+        .sort();
+
+    assert.deepEqual(displayFields(formYaml), displayFields(settingsYml));
+  });
+
+  test("a field's default is the same in both forms", () => {
+    // `urgent_threshold` was 10 in form.yaml and 5 in settings.yml. Both
+    // render, so neither is a failure a user could report — the pasted
+    // board simply highlights twice as generously as the published one.
+    const defaults = (yaml: string) => {
+      const found = new Map<string, string>();
+      for (const block of yaml.split(/^\s*-?\s*(?=keyname:)/m)) {
+        const key = block.match(/^keyname:\s*(\S+)/)?.[1];
+        const value = block.match(/^\s*default:\s*(.+)$/m)?.[1]?.trim();
+        if (key && value !== undefined) found.set(key, value);
+      }
+      return found;
+    };
+
+    const fromForm = defaults(formYaml);
+    const fromSettings = defaults(settingsYml);
+
+    for (const [key, value] of fromForm) {
+      if (!fromSettings.has(key)) continue;
+      assert.equal(
+        value,
+        fromSettings.get(key),
+        `${key} defaults to ${value} in form.yaml and ${fromSettings.get(key)} in settings.yml`
+      );
+    }
+  });
+
   test("no station field declares depends_on", () => {
     // xhrSelectSearch does not support it. The form-builder's own field
     // definitions list depends_on under xhrSelect only, and declaring it

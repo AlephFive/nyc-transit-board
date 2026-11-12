@@ -50,18 +50,19 @@
 - keyname: card1_direction
   field_type: select
   name: Direction
-  description: Leave on Both unless you only ever travel one way
+  description: Both, or give one direction the whole card
   group: Column 1 · Row 1
   optional: true
   options:
-    - Both
-    - "1"
-    - "2"
-  default: Both
+    - Both directions: ""
+    - First column only: "1"
+    - Second column only: "2"
+  default: ""
   help_text: >-
-    A card normally shows both directions side by side. Pick one and it
-    gets the whole card. On a railroad, 1 is towards the city and 2 is
-    away from it; on subway and bus they are the card's two columns.
+    Both shows the two directions side by side. Pick one and it gets the
+    whole card. The columns are the card's own left and right, and the
+    heading above each says where it goes. On a railroad the first column
+    is towards the city and the second is away from it.
 
 - keyname: card1_walk
   field_type: number
@@ -117,18 +118,19 @@
 - keyname: card2_direction
   field_type: select
   name: Direction
-  description: Leave on Both unless you only ever travel one way
+  description: Both, or give one direction the whole card
   group: Column 1 · Row 2
   optional: true
   options:
-    - Both
-    - "1"
-    - "2"
-  default: Both
+    - Both directions: ""
+    - First column only: "1"
+    - Second column only: "2"
+  default: ""
   help_text: >-
-    A card normally shows both directions side by side. Pick one and it
-    gets the whole card. On a railroad, 1 is towards the city and 2 is
-    away from it; on subway and bus they are the card's two columns.
+    Both shows the two directions side by side. Pick one and it gets the
+    whole card. The columns are the card's own left and right, and the
+    heading above each says where it goes. On a railroad the first column
+    is towards the city and the second is away from it.
 
 - keyname: card2_walk
   field_type: number
@@ -184,18 +186,19 @@
 - keyname: card3_direction
   field_type: select
   name: Direction
-  description: Leave on Both unless you only ever travel one way
+  description: Both, or give one direction the whole card
   group: Column 2 · Row 1
   optional: true
   options:
-    - Both
-    - "1"
-    - "2"
-  default: Both
+    - Both directions: ""
+    - First column only: "1"
+    - Second column only: "2"
+  default: ""
   help_text: >-
-    A card normally shows both directions side by side. Pick one and it
-    gets the whole card. On a railroad, 1 is towards the city and 2 is
-    away from it; on subway and bus they are the card's two columns.
+    Both shows the two directions side by side. Pick one and it gets the
+    whole card. The columns are the card's own left and right, and the
+    heading above each says where it goes. On a railroad the first column
+    is towards the city and the second is away from it.
 
 - keyname: card3_walk
   field_type: number
@@ -251,18 +254,19 @@
 - keyname: card4_direction
   field_type: select
   name: Direction
-  description: Leave on Both unless you only ever travel one way
+  description: Both, or give one direction the whole card
   group: Column 2 · Row 2
   optional: true
   options:
-    - Both
-    - "1"
-    - "2"
-  default: Both
+    - Both directions: ""
+    - First column only: "1"
+    - Second column only: "2"
+  default: ""
   help_text: >-
-    A card normally shows both directions side by side. Pick one and it
-    gets the whole card. On a railroad, 1 is towards the city and 2 is
-    away from it; on subway and bus they are the card's two columns.
+    Both shows the two directions side by side. Pick one and it gets the
+    whole card. The columns are the card's own left and right, and the
+    heading above each says where it goes. On a railroad the first column
+    is towards the city and the second is away from it.
 
 - keyname: card4_walk
   field_type: number
@@ -318,18 +322,19 @@
 - keyname: card5_direction
   field_type: select
   name: Direction
-  description: Leave on Both unless you only ever travel one way
+  description: Both, or give one direction the whole card
   group: Column 3 · Row 1
   optional: true
   options:
-    - Both
-    - "1"
-    - "2"
-  default: Both
+    - Both directions: ""
+    - First column only: "1"
+    - Second column only: "2"
+  default: ""
   help_text: >-
-    A card normally shows both directions side by side. Pick one and it
-    gets the whole card. On a railroad, 1 is towards the city and 2 is
-    away from it; on subway and bus they are the card's two columns.
+    Both shows the two directions side by side. Pick one and it gets the
+    whole card. The columns are the card's own left and right, and the
+    heading above each says where it goes. On a railroad the first column
+    is towards the city and the second is away from it.
 
 - keyname: card5_walk
   field_type: number
@@ -385,18 +390,19 @@
 - keyname: card6_direction
   field_type: select
   name: Direction
-  description: Leave on Both unless you only ever travel one way
+  description: Both, or give one direction the whole card
   group: Column 3 · Row 2
   optional: true
   options:
-    - Both
-    - "1"
-    - "2"
-  default: Both
+    - Both directions: ""
+    - First column only: "1"
+    - Second column only: "2"
+  default: ""
   help_text: >-
-    A card normally shows both directions side by side. Pick one and it
-    gets the whole card. On a railroad, 1 is towards the city and 2 is
-    away from it; on subway and bus they are the card's two columns.
+    Both shows the two directions side by side. Pick one and it gets the
+    whole card. The columns are the card's own left and right, and the
+    heading above each says where it goes. On a railroad the first column
+    is towards the city and the second is away from it.
 
 - keyname: card6_walk
   field_type: number
@@ -427,9 +433,26 @@
   name: Highlight departures within (minutes)
   group: Display
   optional: true
-  default: 10
-  placeholder: 10
+  default: 5
+  placeholder: 5
   help_text: >
     Rows this close to your leave time are shown inverted. Counted after walk
     time is subtracted, so it is how long you have before you must go.
 
+- keyname: destination_scale
+  field_type: select
+  name: Destination text size
+  description: Smaller shows more of a long station name
+  group: Display
+  optional: true
+  options:
+    - Smallest: "0.8"
+    - Smaller: "0.9"
+    - Normal: "1"
+    - Larger: "1.1"
+    - Largest: "1.2"
+  default: "1"
+  help_text: >
+    How large the "to" station is drawn on each row. Smaller shows more of a
+    long name before it clips. The route badge and the clock keep their size
+    either way.
