@@ -631,10 +631,37 @@
     flex-shrink: 0;
     border-top: 4px solid transparent;
     border-bottom: 4px solid transparent;
+    /* The head's borders stick out of a zero-size box, so the shaft below
+       sticks out the other side. The margins are what reserve room for
+       both: 6px of shaft on the tail side, 3px of air on the point side. */
+  }
+  .row-arrow--in {
+    border-right: 5px solid currentColor;
+    margin-left: 6px;
     margin-right: 3px;
   }
-  .row-arrow--in { border-right: 6px solid currentColor; }
-  .row-arrow--out { border-left: 6px solid currentColor; }
+  .row-arrow--out {
+    border-left: 5px solid currentColor;
+    margin-left: 0;
+    margin-right: 9px;
+  }
+  /* The shaft. The head is borders on a zero-size box and cannot carry one,
+     so it is drawn as a pseudo-element butted against the head's flat side.
+     2px tall rather than 1px: a single row of pixels on a 1-bit panel is
+     the first thing to disappear at a glance. */
+  .row-arrow::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    width: 6px;
+    height: 2px;
+    background: currentColor;
+  }
+  /* Each shaft starts at the head's flat side and runs away from the point.
+     The offsets are measured from the zero-width box, so the point side is
+     0 and the flat side is the border's own 5px. */
+  .row-arrow--in::before { left: 0; }
+  .row-arrow--out::before { left: -6px; }
 </style>
 
 {% comment %}
