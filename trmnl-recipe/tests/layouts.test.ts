@@ -585,6 +585,59 @@ describe("the display rule is identical in every layout", () => {
         !/\.row-arrow[^{]*::before/.test(liquid),
         `${name}: .row-arrow uses a pseudo-element, which .row-dest clips`
       );
+
+      // Head and shaft have to tile the box exactly. The head runs from the
+      // point to where the shaft starts, the shaft from there to the far
+      // edge; if the two lengths do not sum to the width, the arrow has
+      // either a gap in it or a shaft that overruns the head.
+      const box = /\.row-arrow\s*\{[^}]*width:\s*(\d+)px[^}]*height:\s*(\d+)px/.exec(liquid);
+      assert.ok(box, `${name}: .row-arrow has no pixel width and height`);
+      const boxW = Number(box[1]);
+      const boxH = Number(box[2]);
+
+      for (const side of ["row-arrow--in", "row-arrow--out"]) {
+        const poly = new RegExp(String.raw`\.${side}\s*\{[^}]*clip-path:\s*polygon\(([^)]*)\)`).exec(liquid);
+        assert.ok(poly, `${name}: .${side} has no polygon`);
+        const vertices = poly[1].split(",").map(v => v.trim().split(/\s+/));
+
+        // Every vertex is in px except the point, which is 50% so it tracks
+        // the height. A bare `0` has no unit, so it has to be taken too —
+        // it is the far edge of the outbound shaft.
+        const xs = vertices
+          .map(v => v[0])
+          .filter(v => v.endsWith("px") || v === "0")
+          .map(v => Number(v.replace("px", "")));
+
+        // The head and the shaft meet at the one x that is neither edge.
+        const joint = xs.find(x => x !== 0 && x !== boxW);
+        assert.ok(joint !== undefined, `${name}: .${side} has no head/shaft joint`);
+
+        const headW = side.endsWith("--in") ? joint : boxW - joint;
+
+        // The shaft's far edge is its own vertex, not a value derived from
+        // the box — deriving it would make the sum below true by
+        // construction and the assertion would test nothing.
+        const farEdge = side.endsWith("--in") ? Math.max(...xs) : Math.min(...xs);
+        const shaftW = side.endsWith("--in") ? farEdge - joint : joint - farEdge;
+
+        assert.equal(
+          headW + shaftW,
+          boxW,
+          `${name}: .${side} head ${headW}px + shaft ${shaftW}px != box ${boxW}px`
+        );
+
+        // A shaft as tall as the head is a rectangle with a point on it,
+        // not an arrow.
+        const ys = vertices
+          .map(v => v[1])
+          .filter(v => v && v.endsWith("px"))
+          .map(v => Number(v.replace("px", "")));
+        const shaftH = Math.max(...ys) - Math.min(...ys);
+        assert.ok(
+          shaftH > 0 && shaftH <= boxH / 3,
+          `${name}: .${side} shaft is ${shaftH}px of ${boxH}px — too thick to read as an arrow`
+        );
+      }
     }
   });
 

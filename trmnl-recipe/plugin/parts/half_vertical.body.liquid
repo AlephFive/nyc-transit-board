@@ -566,9 +566,12 @@
      on the panel the shaft vanished entirely while Chrome still drew it.
 
      `clip-path` keeps every pixel inside the box, so there is nothing to
-     clip. The polygon is a shaft across the vertical middle and a head
-     filling the right third; the whole thing is 10x8, and every vertex
-     lands on a whole pixel because the panel has no grey to dither into. */
+     clip.
+
+     The box is 10x8 and splits into a 5px head and a 5px shaft: the two
+     lengths sum to the width, so changing one means changing the other.
+     The shaft is 2px thick, centred on y 3..5. Every vertex lands on a
+     whole pixel, because the panel has no grey to dither a half into. */
   .row-arrow {
     display: inline-block;
     vertical-align: middle;
@@ -582,11 +585,11 @@
   }
   /* Point left: head on the left third, shaft running right. */
   .row-arrow--in {
-    clip-path: polygon(0 50%, 4px 0, 4px 2px, 10px 2px, 10px 6px, 4px 6px, 4px 100%);
+    clip-path: polygon(0 50%, 5px 0, 5px 3px, 10px 3px, 10px 5px, 5px 5px, 5px 100%);
   }
   /* Point right: the same shape mirrored. */
   .row-arrow--out {
-    clip-path: polygon(10px 50%, 6px 0, 6px 2px, 0 2px, 0 6px, 6px 6px, 6px 100%);
+    clip-path: polygon(10px 50%, 5px 0, 5px 3px, 0 3px, 0 5px, 5px 5px, 5px 100%);
   }
 </style>
 
