@@ -178,6 +178,9 @@ custom_fields:
   - keyname: author_bio
     field_type: author_bio
     name: About
+    # Up to two, comma-separated. TRMNL serves the approved list from its
+    # own /api/categories endpoint. Changes take ~2 hours to reach search.
+    category: travel,productivity
     description: >-
       Live Subway, Bus, LIRR, Metro North, and Ferry departures. Built by
       Brian Shao-en Ma.
