@@ -315,11 +315,8 @@ function routeFilterFor(routes: string[] | undefined) {
  * The subway needs its own rule because its badge is a *label* that several
  * feed ids map onto; everywhere else the badge is the name.
  *
- * Matched loosely on purpose. A rider types what they read, and these labels
- * are long enough to invite near-misses: "babylon" for Babylon, "far
- * rockaway" for the Far Rockaway branch. Case is ignored and a prefix
- * counts, so a partial name narrows the card rather than silently emptying
- * it.
+ * Matched loosely on purpose: case is ignored and a prefix counts, so a
+ * partial name narrows the card rather than silently emptying it.
  */
 /** Apply a card's route filter to built rows, or pass them through. */
 /**
@@ -331,9 +328,8 @@ function routeFilterFor(routes: string[] | undefined) {
  * is 1 city-bound, -1 outbound, 0 unknown — so the rows are filtered and
  * the column stays.
  *
- * A train whose direction is unknown is kept either way. The feed not
- * saying is not the same as the train going the other way, and dropping
- * it would silently hide departures a rider can take.
+ * A train whose direction is unknown is kept either way: the feed not
+ * saying is not the same as the train going the other way.
  */
 function keepDirection<T>(items: T[], direction: 1 | 2 | undefined): T[] {
   if (!direction || items.length < 2) return items;
@@ -354,16 +350,10 @@ function rowsInDirection(
 /**
  * Build rows, then narrow them, then cap — in that order.
  *
- * The cap used to be applied inside `trainRows` and the filters after it,
- * which quietly made a narrow filter return a near-empty card: at Jamaica
- * the first 32 departures span ten branches, so asking for Babylon left 6
- * rows out of a possible 32. The user asked for one branch and got a
- * sixth of a card, with nothing to say why.
- *
- * So the build runs uncapped — `limit: Infinity` — and the cap lands last,
- * on the rows that survived. The extra work is bounded by what the feed
- * holds for one stop and happens after decode, which is the expensive part
- * either way.
+ * Capping before the filter would spend the budget on rows the filter
+ * discards: at Jamaica the first 32 departures span ten branches, so a
+ * card asking for Babylon would get 6 rows instead of its full 32. The
+ * build therefore runs uncapped and the cap lands on what survives.
  */
 function narrowedRows(
   build: (limit: number) => DepartureRowData[],
@@ -434,11 +424,9 @@ export function subwayLinesFor(routes: string[]): string[] {
 /**
  * The tag a non-subway card shows beside its heading.
  *
- * A subway card is identified by its route bullets, and before this the
- * other types showed nothing at all — a Metro-North card and an LIRR card
- * were distinguishable only by their station names, which assumes the
- * reader knows which railroad serves where.
- *
+ * Subway cards are identified by their route bullets instead. The others
+ * need the tag: a Metro-North and an LIRR card are otherwise told apart
+ * only by station name.
  */
 const TYPE_TAGS: Record<string, string> = {
   "railroad-lirr": "LIRR",

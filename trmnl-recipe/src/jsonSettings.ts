@@ -1,40 +1,16 @@
 /**
  * Parsing a board from a JSON polling body.
  *
- * TRMNL POSTs a Liquid-rendered body carrying the user's whole board, and
- * this reads it.
+ * TRMNL POSTs a Liquid-rendered body carrying the user's whole board.
  *
- * The format is JSON rather than a flat string because a flat one has to
- * infer which field it is reading from where a separator falls, and a
- * station name can contain every separator this project uses — a colon, an
- * "@", a middot. That ambiguity is what makes `Bus:6:` parse as a stop
- * called "6", or a route filter sitting past an unexpected tail vanish
- * without an error. A JSON object has no positions: a field is whatever its
- * key says it is, and a value holding a separator is just a string.
+ * JSON rather than a flat string: a station name can contain every
+ * separator this project uses — a colon, an "@", a middot — so positional
+ * parsing is ambiguous. A JSON field is whatever its key says it is, and a
+ * value holding a separator is just a string.
  *
- * **Escaping is `| json`, and the station arrives already split.**
- *
- * An earlier pass concluded the filter did not exist and fell back to
- * stripping quotes with `replace`. That was wrong: the probe wrote
- * `| json` into an HTML attribute, where the quotes were mangled, and the
- * empty result read as a missing filter. Tested properly it quotes,
- * escapes and handles empty strings — `say "hi" ok` renders as
- * `"say \"hi\" ok"` and survives the round trip intact.
- *
- * With real escaping available the template can do the splitting instead
- * of the Worker. A card's station arrives as
- * `{"type": "subway", "ids": ["127", "725"]}`, built in Liquid from the
- * readable value TRMNL stores, every part escaped. Verified against a
- * deliberately hostile value — `subway:1"}],"x":"y` — which escaped to a
- * string and left the rest of the document intact rather than injecting
- * into it.
- *
- * That is what ends the class of bug this project kept hitting: a card
- * called "Bus:6:", a heading reading ":5:", "· Subway" smuggled through
- * an @name, a route filter ignored for sitting past a tail, a badge
- * reading "ACE:5:", and a whole board emptying because TRMNL stores
- * `id::label` and the parser split on the first colon. Every
- * one was the Worker inferring a field from where a separator fell.
+ * Liquid's `| json` does the escaping, so the template splits the station
+ * and the Worker never does. A card's station arrives already split:
+ * `{"type": "subway", "ids": ["127", "725"]}`.
  */
 
 import {

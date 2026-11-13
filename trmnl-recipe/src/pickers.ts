@@ -256,22 +256,15 @@ async function searchBus(query: string): Promise<PickerOption[]> {
 /**
  * Name the bus stops a card lists, from NY Open Data.
  *
- * The board builder has a bundled table for every other network, so it can
- * name a subway or railroad stop offline. Bus stops cannot work that way —
- * there are tens of thousands, the MTA re-IDs them, and `route_info.json`
- * is a hand-maintained map holding the handful this project added itself.
+ * The board builder names subway and railroad stops from bundled tables.
+ * Bus stops cannot work that way: there are tens of thousands, the MTA
+ * re-IDs them, and `route_info.json` holds only the handful this project
+ * added itself. So the name is fetched rather than carried in the stored
+ * value, which keeps free text out of a delimited format.
  *
- * The picker used to paper over that by appending the name it had already
- * resolved to the stored value (`bus:403257@W 42 St/5 Av`). That made the
- * stored value carry free text through a colon-delimited format, and every
- * delimiter a stop name can contain became a parsing hazard — a stale value
- * reached the panel as "W 42 St/5 Av · Bus:5:", and each fix was another
- * guess about which characters were junk. Asking the dataset instead costs
- * one subrequest and removes the guessing entirely.
- *
- * One call names every stop on a card, however many IDs it has. Returns a
- * map rather than throwing: a card whose name cannot be fetched still has
- * departures to show, and falls back to "Bus Stop <id>" as it always did.
+ * One call names every stop on a card. Returns a map rather than throwing:
+ * a card whose name cannot be fetched still has departures to show, and
+ * falls back to "Bus Stop <id>".
  */
 export async function fetchBusStopNames(
   stopIds: string[]
@@ -340,27 +333,21 @@ export function parsePickerKind(value: string | undefined): PickerKind | undefin
 /**
  * Search every transit type at once, labelling each result with its own.
  *
- * The picker runs as a GET, which carries no sibling settings — so the
- * Worker cannot know which transit type the card was set to. Rather than
- * guess, it searches all of them and puts the type in the label, which is
- * what a rider needs to tell "Jamaica" the LIRR station from "Jamaica
- * Center" on the E train anyway.
+ * The picker runs as a GET, which carries no sibling settings, so the
+ * Worker cannot know the card's transit type. It searches all of them and
+ * puts the type in the label — which is also how a rider tells "Jamaica"
+ * the LIRR station from "Jamaica Center" on the E train.
  *
- * The stored value keeps its own type prefix (`lirr:102`), so the board
- * reads the right feed whatever the card's type field says. That makes the
- * type field redundant for routing and leaves it as the thing it should
- * always have been: a filter on what the search offers.
+ * The stored value carries its own type prefix (`lirr:102`), so the board
+ * reads the right feed regardless of the card's type field.
  */
 /**
  * Recover a stored value that is really a dropdown label.
  *
  * TRMNL is supposed to store the `id` from `{id, name}` and show the
- * `name`. Sometimes the label lands in storage instead — the field then
- * reads correctly in the form while the Worker receives
- * "116 St-Columbia University (1) · Subway", which parses to nothing and
- * drops the card. Every card dropping is what puts the demo board on a
- * panel whose settings all look right, which is unfalsifiable from the
- * user's side: they are looking at the name they picked.
+ * `name`. Sometimes the label lands in storage instead, so the Worker
+ * receives "116 St-Columbia University (1) · Subway", which parses to
+ * nothing and drops the card while the form still reads correctly.
  *
  * A label is recognisable — it ends " · <Network>", a separator no MTA
  * stop name contains — and the station name in front of it searches the

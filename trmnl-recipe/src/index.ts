@@ -32,10 +32,8 @@ import {
  * headers it intends to send are permitted, and if the answer omits them it
  * cancels the POST.
  *
- * It cancels it *silently* — the dropdown renders empty, the Worker logs
- * nothing but a stray OPTIONS, and both ends look healthy. That is what the
- * empty picker turned out to be, after `depends_on` and the response shape
- * had both been ruled out.
+ * It cancels it *silently*: the dropdown renders empty, the Worker logs
+ * nothing but a stray OPTIONS, and both ends look healthy.
  *
  * `x-csrf-token` is in the list because TRMNL's widget sends one unless the
  * field sets `exclude_csrf_token`.

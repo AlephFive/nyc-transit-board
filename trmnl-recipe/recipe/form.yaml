@@ -21,7 +21,7 @@
   optional: true
   default: true
   help_text: >-
-    Its column-mate then fills the column and shows twice as many departures.
+    Its column-mate then fills the column, showing twice as many departures.
 
 - keyname: card1_station
   field_type: xhrSelectSearch
@@ -43,10 +43,8 @@
   optional: true
   placeholder: 1,2,3
   help_text: >-
-    Comma separated, written the way you say them: subway lines (1,2,3 or
-    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
-    names work, so "hud" finds Hudson. Most useful at a complex like Times
-    Square, where a card would otherwise carry twelve lines.
+    Comma separated: subway lines (1,2,3 or A,C,E), railroad branches
+    (Hudson), bus routes (M42). Partial names work — "hud" finds Hudson.
 
 - keyname: card1_direction
   field_type: select
@@ -60,9 +58,8 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    The headings on the card name where each column goes — Uptown, Downtown,
-    Flushing-Main St. Pick the one you ride. On a railroad the first column is
-    city-bound; at a terminal like Grand Central it is empty.
+    The card's headings name where each column goes. On a railroad the first
+    column is city-bound, and at a terminal it is empty.
 
 - keyname: card1_walk
   field_type: number
@@ -89,7 +86,7 @@
   optional: true
   default: true
   help_text: >-
-    Its column-mate then fills the column and shows twice as many departures.
+    Its column-mate then fills the column, showing twice as many departures.
 
 - keyname: card2_station
   field_type: xhrSelectSearch
@@ -111,10 +108,8 @@
   optional: true
   placeholder: 1,2,3
   help_text: >-
-    Comma separated, written the way you say them: subway lines (1,2,3 or
-    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
-    names work, so "hud" finds Hudson. Most useful at a complex like Times
-    Square, where a card would otherwise carry twelve lines.
+    Comma separated: subway lines (1,2,3 or A,C,E), railroad branches
+    (Hudson), bus routes (M42). Partial names work — "hud" finds Hudson.
 
 - keyname: card2_direction
   field_type: select
@@ -128,9 +123,8 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    The headings on the card name where each column goes — Uptown, Downtown,
-    Flushing-Main St. Pick the one you ride. On a railroad the first column is
-    city-bound; at a terminal like Grand Central it is empty.
+    The card's headings name where each column goes. On a railroad the first
+    column is city-bound, and at a terminal it is empty.
 
 - keyname: card2_walk
   field_type: number
@@ -157,7 +151,7 @@
   optional: true
   default: true
   help_text: >-
-    Its column-mate then fills the column and shows twice as many departures.
+    Its column-mate then fills the column, showing twice as many departures.
 
 - keyname: card3_station
   field_type: xhrSelectSearch
@@ -179,10 +173,8 @@
   optional: true
   placeholder: 1,2,3
   help_text: >-
-    Comma separated, written the way you say them: subway lines (1,2,3 or
-    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
-    names work, so "hud" finds Hudson. Most useful at a complex like Times
-    Square, where a card would otherwise carry twelve lines.
+    Comma separated: subway lines (1,2,3 or A,C,E), railroad branches
+    (Hudson), bus routes (M42). Partial names work — "hud" finds Hudson.
 
 - keyname: card3_direction
   field_type: select
@@ -196,9 +188,8 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    The headings on the card name where each column goes — Uptown, Downtown,
-    Flushing-Main St. Pick the one you ride. On a railroad the first column is
-    city-bound; at a terminal like Grand Central it is empty.
+    The card's headings name where each column goes. On a railroad the first
+    column is city-bound, and at a terminal it is empty.
 
 - keyname: card3_walk
   field_type: number
@@ -225,7 +216,7 @@
   optional: true
   default: true
   help_text: >-
-    Its column-mate then fills the column and shows twice as many departures.
+    Its column-mate then fills the column, showing twice as many departures.
 
 - keyname: card4_station
   field_type: xhrSelectSearch
@@ -247,10 +238,8 @@
   optional: true
   placeholder: 1,2,3
   help_text: >-
-    Comma separated, written the way you say them: subway lines (1,2,3 or
-    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
-    names work, so "hud" finds Hudson. Most useful at a complex like Times
-    Square, where a card would otherwise carry twelve lines.
+    Comma separated: subway lines (1,2,3 or A,C,E), railroad branches
+    (Hudson), bus routes (M42). Partial names work — "hud" finds Hudson.
 
 - keyname: card4_direction
   field_type: select
@@ -264,9 +253,8 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    The headings on the card name where each column goes — Uptown, Downtown,
-    Flushing-Main St. Pick the one you ride. On a railroad the first column is
-    city-bound; at a terminal like Grand Central it is empty.
+    The card's headings name where each column goes. On a railroad the first
+    column is city-bound, and at a terminal it is empty.
 
 - keyname: card4_walk
   field_type: number
@@ -293,7 +281,7 @@
   optional: true
   default: true
   help_text: >-
-    Its column-mate then fills the column and shows twice as many departures.
+    Its column-mate then fills the column, showing twice as many departures.
 
 - keyname: card5_station
   field_type: xhrSelectSearch
@@ -315,10 +303,8 @@
   optional: true
   placeholder: 1,2,3
   help_text: >-
-    Comma separated, written the way you say them: subway lines (1,2,3 or
-    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
-    names work, so "hud" finds Hudson. Most useful at a complex like Times
-    Square, where a card would otherwise carry twelve lines.
+    Comma separated: subway lines (1,2,3 or A,C,E), railroad branches
+    (Hudson), bus routes (M42). Partial names work — "hud" finds Hudson.
 
 - keyname: card5_direction
   field_type: select
@@ -332,9 +318,8 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    The headings on the card name where each column goes — Uptown, Downtown,
-    Flushing-Main St. Pick the one you ride. On a railroad the first column is
-    city-bound; at a terminal like Grand Central it is empty.
+    The card's headings name where each column goes. On a railroad the first
+    column is city-bound, and at a terminal it is empty.
 
 - keyname: card5_walk
   field_type: number
@@ -361,7 +346,7 @@
   optional: true
   default: true
   help_text: >-
-    Its column-mate then fills the column and shows twice as many departures.
+    Its column-mate then fills the column, showing twice as many departures.
 
 - keyname: card6_station
   field_type: xhrSelectSearch
@@ -383,10 +368,8 @@
   optional: true
   placeholder: 1,2,3
   help_text: >-
-    Comma separated, written the way you say them: subway lines (1,2,3 or
-    A,C,E), railroad branches (Hudson), bus routes (M42). Case and partial
-    names work, so "hud" finds Hudson. Most useful at a complex like Times
-    Square, where a card would otherwise carry twelve lines.
+    Comma separated: subway lines (1,2,3 or A,C,E), railroad branches
+    (Hudson), bus routes (M42). Partial names work — "hud" finds Hudson.
 
 - keyname: card6_direction
   field_type: select
@@ -400,9 +383,8 @@
     - Second column only: "2"
   default: ""
   help_text: >-
-    The headings on the card name where each column goes — Uptown, Downtown,
-    Flushing-Main St. Pick the one you ride. On a railroad the first column is
-    city-bound; at a terminal like Grand Central it is empty.
+    The card's headings name where each column goes. On a railroad the first
+    column is city-bound, and at a terminal it is empty.
 
 - keyname: card6_walk
   field_type: number
@@ -438,8 +420,8 @@
   default: 5
   placeholder: 5
   help_text: >-
-    Highlighted rows are drawn white on black. Lower this if most of the board
-    ends up highlighted — once half the rows are marked, nothing stands out.
+    Highlighted rows are drawn white on black. Lower it if most of the board
+    ends up highlighted.
 
 - keyname: destination_scale
   field_type: select
@@ -455,5 +437,4 @@
     - Largest: "1.2"
   default: "1"
   help_text: >-
-    Sets the size of the destination on every row. Smaller fits more of a long
-    name before it clips; larger reads better from a distance.
+    Applies to every row. Larger reads better from across a room.
