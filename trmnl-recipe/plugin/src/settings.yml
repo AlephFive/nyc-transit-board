@@ -182,11 +182,12 @@ custom_fields:
     # own /api/categories endpoint. Changes take ~2 hours to reach search.
     category: travel,productivity
     description: >-
-      Live Subway, Bus, LIRR, Metro North, and Ferry departures. Built by
-      Brian Shao-en Ma.
+      Live Subway, Bus, LIRR, Metro North, and Ferry departures.
       <a href="https://brian.ma/nyc-transit-board/">Full guide</a> —
       includes instructions on board layout, route filtering, picking
-      directions, plus some tips/tricks.
+      directions, plus some tips/tricks. Built by Brian Shao-en Ma. Feel
+      free to email me if you have questions, feature requests or bug
+      reports.
     github_url: https://github.com/AlephFive
     learn_more_url: https://brian.ma/nyc-transit-board/
     email_address: bm3027@columbia.edu
