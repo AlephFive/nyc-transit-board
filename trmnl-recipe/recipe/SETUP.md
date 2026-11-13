@@ -19,7 +19,7 @@ the body — see `docs/NEXT-SESSION.md` for why it is a POST and not a
 query string.
 
 The endpoint reads the JSON body and nothing else. A GET, or a body that
-will not parse, renders the demo board — so a plugin whose Polling URL
+will not parse, renders a board with no cards — so a plugin whose Polling URL
 carries the board in a query string shows Times Square rather than the
 user's own stations.
 

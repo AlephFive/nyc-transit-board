@@ -38,7 +38,7 @@ answers search queries.
 GET /api/board?c1=…&c2=…
    │
    ├─ parseBoardSettings()        settings.ts — query string to a typed board
-   │     └─ demo board when nothing is configured
+   │     └─ a board with no cards when nothing is configured
    │
    ├─ buildBoard()                buildBoard.ts
    │     ├─ per-card, concurrently:
@@ -100,7 +100,7 @@ control, so the parser now accepts both separators.
 
 | File | Covers |
 |---|---|
-| `settings.test.ts` | 35 — slot parsing, aliases, the doubled prefix, bad slots, walk times, the demo board |
+| `settings.test.ts` | slot parsing, aliases, the doubled prefix, bad slots, walk times |
 | `transit.test.ts` | 26 — multi-line stations, complexes, express variants, boardability, ID collisions, city-bound |
 | `bus.test.ts` | 10 — stop pairing, the `valid_to` filter, picker grouping |
 | `payload.test.ts` | 10 — the trim loop, including degenerate input |
@@ -138,7 +138,7 @@ this project:
 **None of those were in the server** — which is the interesting part. The
 server's defect rate has been low. But that is partly because the server is
 exercised by every render, and partly luck. The untested parts of it are the
-parts no fixture reaches: the trim loop, the demo-board substitution, the
+parts no fixture reaches: the trim loop, the empty-board case, the
 picker's `valid_to` boundary, the settings parser's edge cases.
 
 *Worth fixing: yes.* `trmnlp test` exists and runs RSpec; a plain Node test

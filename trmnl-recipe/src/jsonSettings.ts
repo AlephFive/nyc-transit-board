@@ -32,8 +32,8 @@
  * That is what ends the class of bug this project kept hitting: a card
  * called "Bus:6:", a heading reading ":5:", "· Subway" smuggled through
  * an @name, a route filter ignored for sitting past a tail, a badge
- * reading "ACE:5:", and a whole board falling back to the demo because
- * TRMNL stores `id::label` and the parser split on the first colon. Every
+ * reading "ACE:5:", and a whole board emptying because TRMNL stores
+ * `id::label` and the parser split on the first colon. Every
  * one was the Worker inferring a field from where a separator fell.
  */
 
@@ -42,7 +42,6 @@ import {
   DEFAULT_FETCH_DEPARTURES,
   DEFAULT_URGENT_THRESHOLD,
   DEFAULT_WALK_TIME,
-  DEMO_CARDS,
   MAX_SLOTS,
   clampDestinationScale,
   parseTransitType,
@@ -211,16 +210,15 @@ function parseCard(slot: number, entry: JsonCard): CardSettings | undefined {
 /**
  * Read a board from a parsed JSON body.
  *
- * Never throws. A malformed body yields the demo board, the same as an
- * empty one — an unattended panel must render something.
+ * Never throws. A malformed body yields no cards, the same as an empty
+ * one, and the layouts say the panel has nothing configured — an
+ * unattended screen must explain itself rather than go blank.
  */
 export function boardFromJson(body: unknown): BoardSettings {
   const board = (body ?? {}) as JsonBoard;
   const entries = Array.isArray(board.cards) ? board.cards : [];
 
   const cards: CardSettings[] = [];
-  /** Cards that parsed but were switched off, counted but not shown. */
-  let hiddenCount = 0;
 
   entries.slice(0, MAX_SLOTS).forEach((entry, index) => {
     const card = parseCard(index + 1, (entry ?? {}) as JsonCard);
@@ -229,22 +227,10 @@ export function boardFromJson(body: unknown): BoardSettings {
     // reads as visible. Reaching false here therefore took unticking the
     // box by hand.
     if (asBoolean((entry as JsonCard).visible, true)) cards.push(card);
-    else hiddenCount += 1;
   });
 
-  // The demo board stands in for a plugin nobody has configured yet, and
-  // only for that. Switching every card off is a configured board that
-  // asks for an empty panel, so it gets one — showing six example
-  // stations instead would be the same wrong answer as showing the six
-  // the user just switched off.
-  //
-  // `isConfigured` is what separates them: a card was parsed, so settings
-  // exist, whatever their visibility.
-  const isConfigured = cards.length > 0 || hiddenCount > 0;
-
   return {
-    cards: cards.length > 0 ? cards : isConfigured ? [] : DEMO_CARDS,
-    isDemo: !isConfigured,
+    cards,
     use24HourTime: asBoolean(board.use24Hour, true),
     urgentThresholdMinutes: asNumber(board.urgent, DEFAULT_URGENT_THRESHOLD),
     destinationScale: clampDestinationScale(

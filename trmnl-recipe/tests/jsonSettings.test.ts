@@ -178,8 +178,8 @@ describe("a card from a JSON body", () => {
   test("the whole board the form sends parses", () => {
     // Six cards, every network. The failure was not one bad value — it
     // was every card but one, which is what made it look like the board
-    // had reverted to the demo.
-    const { cards, isDemo } = boardFromJson({
+    // had emptied itself.
+    const { cards } = boardFromJson({
       cards: [
         { station: "subway:117::116 St-Columbia University (1) · Subway" },
         { station: "subway:127+725::Times Sq-42 St · Subway", routes: "7" },
@@ -189,7 +189,6 @@ describe("a card from a JSON body", () => {
         { station: "ferry:4::Hunters Point South · Ferry" },
       ],
     });
-    assert.equal(isDemo, false);
     assert.equal(cards.length, 6);
     assert.deepEqual(cards[1].routes, ["7"]);
   });
@@ -245,9 +244,10 @@ describe("values arrive as whatever Liquid rendered", () => {
   });
 });
 
-describe("a body that makes no sense still renders a board", () => {
-  // An unattended panel must show something. Every one of these yields the
-  // demo board rather than an error.
+describe("a body that makes no sense yields a board with no cards", () => {
+  // Never throws, whatever arrives. A Worker exception renders as nothing
+  // at all — the Liquid never runs — so the parser answers with an empty
+  // board and the layouts say the panel has nothing configured.
   for (const [label, body] of [
     ["empty object", {}],
     ["no cards key", { urgent: 5 }],
@@ -258,8 +258,10 @@ describe("a body that makes no sense still renders a board", () => {
   ] as [string, unknown][]) {
     test(label, () => {
       const board = boardFromJson(body);
-      assert.equal(board.isDemo, true);
-      assert.ok(board.cards.length > 0);
+      assert.deepEqual(board.cards, []);
+      // The display settings still resolve, so the board is renderable.
+      assert.equal(typeof board.use24HourTime, "boolean");
+      assert.equal(typeof board.urgentThresholdMinutes, "number");
     });
   }
 
@@ -276,7 +278,7 @@ describe("a body that makes no sense still renders a board", () => {
       const board = boardFromJson({
         cards: [{ station: "subway:117", visible }],
       });
-      assert.equal(board.isDemo, false, `visible: ${JSON.stringify(visible)}`);
+      assert.equal(board.cards.length, 1, `visible: ${JSON.stringify(visible)}`);
       assert.deepEqual(board.cards[0]!.stopIds, ["117"]);
     }
   });
@@ -293,36 +295,37 @@ describe("a body that makes no sense still renders a board", () => {
     assert.deepEqual(board.cards[0]!.stopIds, ["117"]);
   });
 
-  test("hiding every card empties the board, and does not fall back to the demo", () => {
-    // Two wrong answers were tried here before this one. First the
-    // hidden cards were restored, so unticking all six showed all six.
-    // Then the board fell through to the demo, so unticking all six
-    // showed Times Square and Jamaica — six stations the user had never
-    // chosen, which is the same failure wearing a different hat.
+  test("hiding every card empties the board", () => {
+    // Two wrong answers were tried here first. The hidden cards were
+    // restored, so unticking all six showed all six; then the board fell
+    // back to a demo, so unticking all six showed six stations the user
+    // had never chosen. Both overrode the one instruction the form had
+    // actually been given.
     //
-    // The demo exists for a plugin nobody has configured. A board whose
-    // every card is switched off IS configured; it is asking for an
-    // empty panel. The layouts render a line saying so, because an
-    // e-ink screen holds its last image and a blank one reads as a
-    // crash.
+    // The layouts render a line saying every card is off, because an
+    // e-ink screen holds its last image and a blank one reads as a crash.
     const board = boardFromJson({
       cards: [
         { station: "subway:117", visible: false },
         { station: "subway:725", visible: false },
       ],
     });
-    assert.equal(board.isDemo, false, "a configured board is not the demo");
     assert.deepEqual(board.cards, [], "no card asked to be shown");
   });
 
-  test("a body with no cards at all is the demo", () => {
-    // The case the demo is actually for: nothing configured yet, so
-    // there is nothing to honour and an example board is the most
-    // useful thing a fresh panel can show.
-    for (const body of [{}, { cards: [] }, { cards: "nonsense" }]) {
+  test("an unconfigured board has no cards either", () => {
+    // There is no demo board to stand in. A plugin nobody has set up
+    // sends six blank stations, every one of which `parseCard` drops, so
+    // the result is the same empty board as switching them all off — and
+    // the panel says so rather than showing someone else's stations.
+    for (const body of [
+      {},
+      { cards: [] },
+      { cards: "nonsense" },
+      { cards: [{ station: { type: "", ids: [""] }, visible: true }] },
+    ]) {
       const board = boardFromJson(body);
-      assert.equal(board.isDemo, true, JSON.stringify(body));
-      assert.ok(board.cards.length > 0, "the demo has cards");
+      assert.deepEqual(board.cards, [], JSON.stringify(body));
     }
   });
 });

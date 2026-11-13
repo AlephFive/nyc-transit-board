@@ -21,8 +21,8 @@ and that format caused more defects than anything else in this project: a
 card headed "Bus Stop 6" built from a stop that does not exist, a heading
 reading ":5:", "· Subway" smuggled through an `@name` suffix, a route
 filter silently ignored for sitting past a tail, a badge reading "ACE:5:",
-and a fully configured board falling back to the demo because TRMNL stores
-a picker value as `id::label` and the parser split on the first colon.
+and a fully configured board emptying itself because TRMNL stores a picker
+value as `id::label` and the parser split on the first colon.
 
 Every one was the Worker inferring which field it was reading from where a
 separator fell, in a value that can contain every separator.
@@ -52,7 +52,7 @@ The discipline that works:
 1. **Commit before pushing.** Twice now the rewritten file has been
    committed instead of the real one, and the second time it blanked the
    board — `polling_verb: post` with an empty body means TRMNL posts
-   nothing and the Worker returns the demo.
+   nothing and the Worker returns a board with no cards.
 2. **After pushing, `git checkout --` the file.** Treat the post-push
    working tree as damage to discard, never as something to `git add`.
 
@@ -99,10 +99,11 @@ alleys.
 - **A deployed Worker runs in UTC.** `wrangler dev` inherits the
   developer's zone, so a timezone bug is invisible locally. CI guards this
   under `TZ=UTC`.
-- **The local preview renders the demo board, not your panel.** TRMNL has
+- **The local preview renders `.trmnlp.yml`, not your panel.** TRMNL has
   no API to read a user's stored settings back, so the preview cannot
-  discover what a device is configured to show. It renders `DEMO_CARDS`,
-  generated into `.trmnlp.yml` by `npm run preview:sync`.
+  discover what a device is configured to show. The stations in that file
+  are hand-maintained example values; edit them to preview a different
+  board.
 
   The consequence worth remembering: **the preview cannot show a bug in a
   stored value**, because every value in it was written correctly by the

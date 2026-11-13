@@ -8,9 +8,7 @@
  *
  * This module holds what does not depend on how a board arrives: the transit
  * type union and its aliases, the defaults a missing field falls back to,
- * the destination scale's bounds, and `DEMO_CARDS` — the board shown to
- * anyone who has configured nothing, which is also what the public recipe
- * listing previews.
+ * and the destination scale's bounds.
  */
 
 // `pickers` imports only JSON the Worker already loads for the board, so
@@ -68,8 +66,6 @@ export interface CardSettings {
 /** A whole board, as one poll describes it. */
 export interface BoardSettings {
   cards: CardSettings[];
-  /** True when nothing was configured and the demo board stood in. */
-  isDemo: boolean;
   use24HourTime: boolean;
   urgentThresholdMinutes: number;
   /**
@@ -94,7 +90,7 @@ export const DEFAULT_DESTINATION_SCALE = 1;
 /**
  * Minutes before you must leave, below which a row is highlighted.
  *
- * Was 10, which marked 33 of the demo board's 62 rows: once half the panel
+ * Was 10, which marked 33 of a full board's 62 rows: once half the panel
  * is inverted the highlight has stopped distinguishing anything. 5 is the
  * value at which it still picks out a minority — and it must match the
  * form's own default, or a field left untouched and a field cleared mean
@@ -137,77 +133,3 @@ export function parseTransitType(value: string): TransitType | undefined {
   return aliases[normalised];
 }
 
-
-/**
- * The board a plugin shows before anyone has configured it.
- *
- * Two problems, one answer. A new installer would otherwise see a blank panel
- * and have to guess that the fault is their own empty form. And the public
- * recipe page renders a preview from whatever the author's own instance holds,
- * which would publish the author's home stations to everyone browsing the
- * directory.
- *
- * So an unconfigured board shows a demonstration instead: three well-known
- * Manhattan stations nobody lives at, exercising all three transit types, with
- * walk times that make the filtering visible. It is real live data — the
- * stations exist and the feeds are current — so the preview shows what the
- * plugin genuinely does rather than a mock-up of it.
- */
-export const DEMO_CARDS: CardSettings[] = [
-  {
-    slot: 1,
-    transitType: "subway",
-    // Times Square, all five platform groups, as the picker would supply them.
-    stopIds: ["127", "725", "902", "A27", "R16"],
-    walkTime: 5,
-    title: "Times Sq-42 St",
-  },
-  {
-    slot: 2,
-    transitType: "subway",
-    // The same complex narrowed to one platform group, which is how a rider
-    // splits a station carrying twelve routes into something readable. Shown
-    // beneath the full card so the preview demonstrates the difference.
-    stopIds: ["R16"],
-    walkTime: 5,
-    routes: ["N", "Q", "R", "W"],
-    title: "Custom name",
-  },
-  {
-    slot: 3,
-    transitType: "railroad-lirr",
-    // Jamaica, not Penn Station. At a terminal most trains run to their
-    // branch's namesake, so badge and destination repeat on three rows in
-    // four — "Ronkonkoma | Ronkonkoma" — and the card reads as a column of
-    // the same word twice. Jamaica is the LIRR's hub, where nearly every
-    // train passes through: 10 branches, 13 destinations, and trains in
-    // both directions, which is what the Metro-North card beside it shows.
-    stopIds: ["102"],
-    walkTime: 10,
-    title: "Jamaica",
-  },
-  {
-    slot: 4,
-    transitType: "bus",
-    // Both sides of the street. A bus stop ID is one direction, so a corner
-    // takes two — the single thing about bus cards a new installer most
-    // needs to see, and the preview can show it for free.
-    stopIds: ["403257", "403465"],
-    walkTime: 5,
-    title: "W 42 St/5 Av",
-  },
-  {
-    slot: 5,
-    transitType: "railroad-mtn",
-    stopIds: ["1"], // Grand Central
-    walkTime: 10,
-    title: "Grand Central",
-  },
-  {
-    slot: 6,
-    transitType: "ferry",
-    stopIds: ["87"], // Wall St/Pier 11, the busiest landing
-    walkTime: 5,
-    title: "Wall St/Pier 11",
-  },
-];

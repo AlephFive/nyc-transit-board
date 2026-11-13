@@ -1017,37 +1017,22 @@
       {% endcomment %}
       {% comment %}
         The footer is always exactly two items: a label on the left and the
-        timestamp on the right. The demo notice is folded into the label
-        rather than added as a third, because a third item has nowhere to
-        go — the stamp takes the right edge, so anything between them is
-        squeezed, and at a larger ui-scale all three collided into one
-        unreadable line.
-
-        The backend substitutes a demo board when nothing is configured, so
-        the panel must say whose stations these are: without it a new
-        installer sees Times Square and reasonably assumes their own form
-        took effect.
+        timestamp on the right. A third has nowhere to go — the stamp takes
+        the right edge, so anything between them is squeezed, and at a
+        larger ui-scale all three collided into one unreadable line.
       {% endcomment %}
-      {% if d %}
-        <span class="title footer-label">Example board · choose your stations in settings</span>
-      {% else %}
-        {% comment %}
-          Two words, not four bullets and not the networks spelled out.
-          "NYC Subway, Bus, Rail, Ferry" was 28 characters of a bar that
-          also holds a timestamp, and collided with it at a larger
-          ui-scale; the bullets that replaced it read as a fifth row of
-          badges rather than as a caption. The name of the board is what
-          the bar is for, and `.footer-label` already clips it rather
-          than pushing the stamp off the panel.
-        {% endcomment %}
-        <span class="title footer-label">NYC Transit</span>
-      {% endif %}
+      {% comment %}
+        Two words, not four bullets and not the networks spelled out.
+        "NYC Subway, Bus, Rail, Ferry" was 28 characters of a bar that
+        also holds a timestamp, and collided with it at a larger
+        ui-scale; the bullets that replaced it read as a fifth row of
+        badges rather than as a caption. The name of the board is what
+        the bar is for, and `.footer-label` already clips it rather
+        than pushing the stamp off the panel.
+      {% endcomment %}
+      <span class="title footer-label">NYC Transit</span>
       {% if a %}
         <span class="title footer-stamp">Last updated: {{ a }}</span>
       {% endif %}
-    {% if d %}
-      {% comment %} Demo board; see the full layout for why this matters. {% endcomment %}
-      <span class="instance">Example</span>
-    {% endif %}
   </div>
 

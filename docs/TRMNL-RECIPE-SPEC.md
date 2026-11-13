@@ -833,16 +833,20 @@ stale?".
 
 | Layer | Key | Hit rate | Saves | Build? |
 |---|---|---|---|---|
-| **Demo board** | `isDemo` | very high | ~3–10ms CPU per hit | **yes, now** |
 | Raw feed bytes | feed URL | ~0% at 10 installs, high at 100+ | upstream fetches, not CPU | at ~100 installs |
 | Decoded feed | feed URL | — | nothing; it is slower | no |
 | Per-user board | settings string | ~0% | — | no |
 
-A per-user board cache cannot work: two users share a key only if they picked
-identical stations *and* identical walk times, and walk time is by definition
-personal. The one exception is the **demo board**, which every unconfigured
-install and the public store preview request with the same empty query — one
-key, one build, served to everyone. `settings.isDemo` already identifies it.
+**No board-level cache is possible.** Two users share a key only if they
+picked identical stations *and* identical walk times, and walk time is by
+definition personal.
+
+There used to be one exception. A demo board stood in whenever nothing was
+configured, so every unconfigured install and the public store preview asked
+for the same thing — one key, one build, served to everyone. That board is
+gone: an unconfigured panel now says it has no cards rather than showing
+stations nobody chose, and an empty board costs nothing to build, so there is
+nothing left to cache. The demo cache was removed with it.
 
 Note also what caching does *not* change: **billable requests**. A cache hit
 is still a Worker request, because the poll already arrived. Caching moves CPU
@@ -855,12 +859,11 @@ and upstream fetches, never the request count — so the 100,000/day free limit
 > hits, nothing errors. Confirmed in production: five consecutive polls to one
 > colo all reported a miss, while the same code hits immediately under
 > `wrangler dev`. **Caching of any kind therefore requires a custom domain**,
-> which store submission wants regardless. Until then the demo cache is
-> correct and inert, and reports `x-board-cache: unavailable`.
+> which store submission wants regardless.
 
-**Order of work:** cache the demo board now, since its key is already computed
-and its correctness is checkable at one install. **Add the raw-feed cache at
-roughly a hundred installs**, or sooner if the MTA rate-limits — their feeds
+**Order of work:** nothing now — the only board worth caching no longer
+exists. **Add the raw-feed cache at roughly a hundred installs**, or sooner
+if the MTA rate-limits — their feeds
 are unauthenticated and built for public polling, so that seems unlikely. Use
 a TTL under the feed's own update interval: sampled every 10 seconds, the
 `a_division` feed changed on *every* sample, so ~30s is a ceiling and not a

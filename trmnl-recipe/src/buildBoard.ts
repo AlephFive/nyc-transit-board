@@ -136,8 +136,6 @@ export interface Board {
    */
   ds?: number;
   c: BoardCard[];
-  /** Present and true when this is the demo board, not a configured one. */
-  d?: true;
 }
 
 /** Environment the Worker supplies. */
@@ -242,26 +240,6 @@ const toBoardRow = (row: DepartureRowData): BoardRow => {
  * stays well inside TRMNL's 5KB cap.
  */
 const ROWS_PER_COLUMN = 16;
-
-/**
- * Rows per column on the demo board.
- *
- * The demo fills all six slots so the preview shows the layout at full
- * density, and six busy cards at the usual 16 rows run past TRMNL's 5KB
- * store — measured at 90.0% of cap, with the trimmer cutting every column to
- * 15. Trimming is correct behaviour but the wrong thing to depend on for the
- * one board every new installer and the public directory listing sees.
- *
- * Six, measured: at 16 the board sits at 90.0% of cap with every column
- * trimmed, at 8 it is still 90%, and at 6 it drops to 71.2%. The three
- * railroad cards are what dominate — each is one full-height list and takes
- * `limit * 2` — so the demo's budget moves faster than the number suggests.
- *
- * Six costs the preview nothing visible. A split card draws about seven rows
- * before the Content Limiter cuts, so the panel was never going to show the
- * rest; this stops sending rows that are discarded twice.
- */
-const DEMO_ROWS_PER_COLUMN = 6;
 
 /**
  * How long one card may spend waiting on upstream feeds.
@@ -800,7 +778,7 @@ export async function buildBoard(
   env: BuildEnv
 ): Promise<Board> {
   const shared: SharedOptions = {
-    limit: settings.isDemo ? DEMO_ROWS_PER_COLUMN : ROWS_PER_COLUMN,
+    limit: ROWS_PER_COLUMN,
     // The panel shows clock times, never a countdown: it refreshes on an
     // interval, so "leaves in 6 min" is stale by up to that interval while
     // "16:42" stays true. The shared row builder takes the flag either way.
@@ -885,7 +863,5 @@ export async function buildBoard(
   // Only when it differs from the default, so an unchanged setting costs
   // nothing against the 5KB payload cap.
   if (settings.destinationScale !== 1) board.ds = settings.destinationScale;
-  // The panel says so, so a new installer knows these are not their stations.
-  if (settings.isDemo) board.d = true;
   return board;
 }
