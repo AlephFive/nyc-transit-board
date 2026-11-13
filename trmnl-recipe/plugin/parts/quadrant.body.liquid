@@ -557,6 +557,31 @@
     align-items: center;
     box-sizing: border-box;
   }
+
+  /* The direction marker: a solid triangle, drawn with borders rather than
+     set as a glyph.
+
+     The bitmap faces exist at 12, 16 and 21px only, so a larger text arrow
+     would land between strikes. A border triangle is pure geometry, so it
+     is crisp at any size, and a filled shape carries much further across a
+     room than the thin stroke of a "‹". It inherits `currentColor`, which
+     is what keeps it visible when an urgent row inverts to white on black. */
+  .row-arrow {
+    /* `.row-dest` is not a flex container, so the triangle needs to be an
+       inline-block to take a width and borders at all. */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+    width: 0;
+    height: 0;
+    flex-shrink: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    margin-right: 3px;
+  }
+  .row-arrow--in { border-right: 6px solid currentColor; }
+  .row-arrow--out { border-left: 6px solid currentColor; }
 </style>
 
 {% comment %}
@@ -770,18 +795,19 @@
                       {% endif %}
                 {% if r[1] == r[0] %}{% assign destination = "" %}{% else %}{% assign destination = r[1] %}{% endif %}
                 {% comment %}
-                  `‹` toward the city, `›` away from it, nothing when the
-                  direction is unknown. Only the railroads report one.
+                  "in" toward the city, "out" away from it, nothing when the
+                  direction is unknown. Only the railroads report one. The word
+                  picks the triangle class; the shape is drawn in CSS.
                 {% endcomment %}
                 {% assign arrow = "" %}
                 {% if r[4] == 1 %}
-                  {% assign arrow = "‹" %}
+                  {% assign arrow = "in" %}
                 {% elsif r[4] == -1 %}
-                  {% assign arrow = "›" %}
+                  {% assign arrow = "out" %}
                 {% endif %}
                 <div class="row-line{% if r[3] == 1 %} row-line--urgent invert rounded--small{% endif %} flex flex--row flex--between flex--center-y gap--small w--full">
                   <span class="label label--small md:label--base label--filled {{ bullet_class }}{% if bullet_class == "" %} row-badge{% endif %}">{% if bullet_class != "" %}<span>{{ glyph }}</span>{% else %}{{ r[0] }}{% endif %}</span>
-                  <span class="row-dest title title--small grow">{% if arrow != "" %}{{ arrow }}&nbsp;{% endif %}{{ destination }}</span>
+                  <span class="row-dest title title--small grow">{% if arrow != "" %}<span class="row-arrow row-arrow--{{ arrow }}"></span>{% endif %}{{ destination }}</span>
                   <span class="row-time value value--xsmall">{{ r[2] }}</span>
                 </div>
               {% endfor %}

@@ -536,25 +536,35 @@ describe("the display rule is identical in every layout", () => {
   });
 
   test("every layout draws the direction arrow", () => {
-    // `‹` toward the city, `›` away. Single-angle quotes rather than ← →,
-    // which the panel's face draws inconsistently at this size.
+    // "in" toward the city, "out" away. The word picks a class; the shape
+    // is a CSS border triangle, because the bitmap faces exist at 12, 16
+    // and 21px only and a larger glyph would land between strikes.
     for (const [name, liquid] of layouts) {
       assert.ok(liquid.includes("r[4]"), `${name} ignores the direction field`);
 
-      // The assignments themselves, not just the glyphs — a comment
-      // mentioning an arrow would satisfy a bare `includes`.
+      // The assignments themselves, not just the words — a comment
+      // mentioning a direction would satisfy a bare `includes`.
       assert.ok(
-        /assign arrow = "‹"/.test(liquid),
+        /assign arrow = "in"/.test(liquid),
         `${name} never assigns the inbound arrow`
       );
       assert.ok(
-        /assign arrow = "›"/.test(liquid),
+        /assign arrow = "out"/.test(liquid),
         `${name} never assigns the outbound arrow`
       );
       assert.ok(
-        liquid.includes("{{ arrow }}"),
+        liquid.includes(`row-arrow--{{ arrow }}`),
         `${name} assigns an arrow but never renders it`
       );
+
+      // A border triangle is invisible without its borders, and the two
+      // directions differ only by which side carries the colour. Asserting
+      // the shape exists is what stops a rename or a tidy-up leaving an
+      // empty span that renders nothing at all.
+      for (const side of ["row-arrow--in", "row-arrow--out"]) {
+        const rule = new RegExp(String.raw`\.${side}\s*\{[^}]*border-(left|right):[^}]*currentColor`);
+        assert.ok(rule.test(liquid), `${name}: .${side} draws no triangle`);
+      }
     }
   });
 
@@ -622,6 +632,9 @@ describe("every class exists in the framework", () => {
     "footer-label",
     "row-line--urgent",
     "bullet-strip--tag",
+    "row-arrow",
+    "row-arrow--in",
+    "row-arrow--out",
   ]);
 
   let frameworkClasses: Set<string> | undefined;

@@ -610,6 +610,31 @@
   .trmnl .row-badge {
     max-width: max(45%, 5ch);
   }
+
+  /* The direction marker: a solid triangle, drawn with borders rather than
+     set as a glyph.
+
+     The bitmap faces exist at 12, 16 and 21px only, so a larger text arrow
+     would land between strikes. A border triangle is pure geometry, so it
+     is crisp at any size, and a filled shape carries much further across a
+     room than the thin stroke of a "‹". It inherits `currentColor`, which
+     is what keeps it visible when an urgent row inverts to white on black. */
+  .row-arrow {
+    /* `.row-dest` is not a flex container, so the triangle needs to be an
+       inline-block to take a width and borders at all. */
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+    width: 0;
+    height: 0;
+    flex-shrink: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    margin-right: 3px;
+  }
+  .row-arrow--in { border-right: 6px solid currentColor; }
+  .row-arrow--out { border-left: 6px solid currentColor; }
 </style>
 
 {% comment %}
@@ -1101,17 +1126,17 @@
                         {% assign badge_fill = "label--filled" %}
 
                         {% comment %}
-                          `‹` toward the city, `›` away from it, nothing when
-                          the direction is unknown — a train terminating here
-                          has none, and no other transit type reports one.
-                          Single-angle quotes rather than ← →, which the
-                          panel's face draws inconsistently at this size.
+                          "in" toward the city, "out" away from it, nothing
+                          when the direction is unknown — a train terminating
+                          here has none, and no other transit type reports one.
+                          The word picks the triangle's class; the shape itself
+                          is drawn in CSS.
                         {% endcomment %}
                         {% assign arrow = "" %}
                         {% if r[4] == 1 %}
-                          {% assign arrow = "‹" %}
+                          {% assign arrow = "in" %}
                         {% elsif r[4] == -1 %}
-                          {% assign arrow = "›" %}
+                          {% assign arrow = "out" %}
                         {% endif %}
 
                         {% comment %}
@@ -1138,7 +1163,7 @@
                             losing it there would make the rows that most
                             need it the ones without it.
                           {% endcomment %}
-                          <span class="row-dest title title--small grow">{% if arrow != "" %}{{ arrow }}&nbsp;{% endif %}{{ destination }}</span>
+                          <span class="row-dest title title--small grow">{% if arrow != "" %}<span class="row-arrow row-arrow--{{ arrow }}"></span>{% endif %}{{ destination }}</span>
                           <span class="row-time value value--xsmall">{{ r[2] }}</span>
                         </div>
                       {% endfor %}
