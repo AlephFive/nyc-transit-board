@@ -1,6 +1,7 @@
 ---
 layout: null
 ---
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Transit Board Setup</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -103,6 +104,28 @@ layout: null
     letter-spacing: -0.02em;
     margin: 0 0 18px;
     text-wrap: balance;
+  }
+  /* The five networks are the pitch, so they lead as chips rather than a
+     clause inside the standfirst. Same border idiom as `.scard`; the row
+     wraps on a narrow screen. */
+  .networks {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    margin: 0 0 20px;
+    max-width: 58ch;
+  }
+  .networks li {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 999px;
+    padding: 5px 13px;
+    background: var(--paper-raised);
   }
   .standfirst {
     font-size: 20px;
@@ -436,10 +459,17 @@ layout: null
 <div class="wrap">
   <header class="mast">
     <p class="eyebrow">TRMNL Recipe · Setup Guide</p>
-    <h1>Your next train, on the wall</h1>
+    <h1>NYC transit departures, consolidated on one panel</h1>
+    <ul class="networks">
+      <li>Subway</li>
+      <li>LIRR</li>
+      <li>Metro-North</li>
+      <li>Bus</li>
+      <li>Ferry</li>
+    </ul>
     <p class="standfirst">
-      Six cards of live departures on a TRMNL panel — subway, LIRR, Metro-North, bus and
-      NYC Ferry. Set your walk time and every departure you see is one you can still make.
+      Six cards of live departures on a TRMNL panel. Set your walk time and every
+      departure you see is one you can still make.
     </p>
     <div class="support">
       <p>
