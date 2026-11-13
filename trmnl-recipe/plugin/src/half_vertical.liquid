@@ -693,59 +693,36 @@
     box-sizing: border-box;
   }
 
-  /* The direction marker: a solid triangle, drawn with borders rather than
-     set as a glyph.
+  /* The direction marker: one box, clipped to an arrow.
 
-     The bitmap faces exist at 12, 16 and 21px only, so a larger text arrow
-     would land between strikes. A border triangle is pure geometry, so it
-     is crisp at any size, and a filled shape carries much further across a
-     room than the thin stroke of a "‹". It inherits `currentColor`, which
-     is what keeps it visible when an urgent row inverts to white on black. */
+     Earlier shapes hung borders and a pseudo-element off a zero-size box.
+     That puts ink outside the element, and `.row-dest` sets
+     `overflow: hidden`, so the parts that stuck out were clipped away —
+     on the panel the shaft vanished entirely while Chrome still drew it.
+
+     `clip-path` keeps every pixel inside the box, so there is nothing to
+     clip. The polygon is a shaft across the vertical middle and a head
+     filling the right third; the whole thing is 10x8, and every vertex
+     lands on a whole pixel because the panel has no grey to dither into. */
   .row-arrow {
-    /* `.row-dest` is not a flex container, so the triangle needs to be an
-       inline-block to take a width and borders at all. */
     display: inline-block;
     vertical-align: middle;
     position: relative;
     top: -1px;
-    width: 0;
-    height: 0;
+    width: 10px;
+    height: 8px;
     flex-shrink: 0;
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
-    /* The head's borders stick out of a zero-size box, so the shaft below
-       sticks out the other side. The margins are what reserve room for
-       both: 4px of shaft on the tail side, 3px of air on the point side. */
-  }
-  .row-arrow--in {
-    border-right: 4px solid currentColor;
-    margin-left: 4px;
+    background: currentColor;
     margin-right: 3px;
   }
+  /* Point left: head on the left third, shaft running right. */
+  .row-arrow--in {
+    clip-path: polygon(0 50%, 4px 0, 4px 2px, 10px 2px, 10px 6px, 4px 6px, 4px 100%);
+  }
+  /* Point right: the same shape mirrored. */
   .row-arrow--out {
-    border-left: 4px solid currentColor;
-    margin-left: 0;
-    margin-right: 7px;
+    clip-path: polygon(10px 50%, 6px 0, 6px 2px, 0 2px, 0 6px, 6px 6px, 6px 100%);
   }
-  /* The shaft. The head is borders on a zero-size box and cannot carry one,
-     so it is drawn as a pseudo-element butted against the head's flat side.
-     The shaft is 4px against the head's 8px — half its height, not a
-     quarter. A thin shaft dithers away on the panel and leaves what reads
-     as a bare triangle. Every edge lands on a whole pixel: a half-pixel
-     offset is a grey row, and the panel has no grey. */
-  .row-arrow::before {
-    content: "";
-    position: absolute;
-    top: -2px;
-    width: 4px;
-    height: 4px;
-    background: currentColor;
-  }
-  /* Each shaft starts at the head's flat side and runs away from the point.
-     The offsets are measured from the zero-width box, so the point side is
-     0 and the flat side is the border's own 5px. */
-  .row-arrow--in::before { left: 0; }
-  .row-arrow--out::before { left: -4px; }
 </style>
 
 {% comment %}

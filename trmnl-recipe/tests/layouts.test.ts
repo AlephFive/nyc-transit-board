@@ -537,8 +537,8 @@ describe("the display rule is identical in every layout", () => {
 
   test("every layout draws the direction arrow", () => {
     // "in" toward the city, "out" away. The word picks a class; the shape
-    // is a CSS border triangle, because the bitmap faces exist at 12, 16
-    // and 21px only and a larger glyph would land between strikes.
+    // is a clipped box, because the bitmap faces exist at 12, 16 and 21px
+    // only and a larger glyph would land between strikes.
     for (const [name, liquid] of layouts) {
       assert.ok(liquid.includes("r[4]"), `${name} ignores the direction field`);
 
@@ -557,14 +557,34 @@ describe("the display rule is identical in every layout", () => {
         `${name} assigns an arrow but never renders it`
       );
 
-      // A border triangle is invisible without its borders, and the two
-      // directions differ only by which side carries the colour. Asserting
-      // the shape exists is what stops a rename or a tidy-up leaving an
-      // empty span that renders nothing at all.
+      // The arrow is one box with a background, clipped to shape. Both
+      // halves need asserting: a box with no clip-path is a filled
+      // rectangle, and a clip-path on a box with no background is nothing.
+      assert.match(
+        liquid,
+        /\.row-arrow\s*\{[^}]*background:\s*currentColor/,
+        `${name}: .row-arrow has no fill to clip`
+      );
       for (const side of ["row-arrow--in", "row-arrow--out"]) {
-        const rule = new RegExp(String.raw`\.${side}\s*\{[^}]*border-(left|right):[^}]*currentColor`);
-        assert.ok(rule.test(liquid), `${name}: .${side} draws no triangle`);
+        const rule = new RegExp(String.raw`\.${side}\s*\{[^}]*clip-path:\s*polygon`);
+        assert.ok(rule.test(liquid), `${name}: .${side} is not clipped to an arrow`);
       }
+
+      // Every pixel must sit inside the box. `.row-dest` sets
+      // `overflow: hidden`, so ink placed outside the element is clipped by
+      // the parent — a shape built from borders or a pseudo-element on a
+      // zero-size box draws outside itself and loses parts of the arrow on
+      // the panel, while a browser preview still shows them.
+      const arrowCss = /\.row-arrow\s*\{[^}]*\}/.exec(liquid)?.[0] ?? "";
+      assert.doesNotMatch(
+        arrowCss,
+        /width:\s*0|height:\s*0/,
+        `${name}: .row-arrow draws outside itself, which .row-dest clips`
+      );
+      assert.ok(
+        !/\.row-arrow[^{]*::before/.test(liquid),
+        `${name}: .row-arrow uses a pseudo-element, which .row-dest clips`
+      );
     }
   });
 
