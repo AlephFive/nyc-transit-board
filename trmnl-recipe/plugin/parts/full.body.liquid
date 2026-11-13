@@ -277,6 +277,7 @@
     justify-content: center;
     box-sizing: border-box;
   }
+
   /* Rows are one line each, and the space that buys is given back as
      breathing room between them — the panel is read at a glance from
      across a room, and rows packed tight are what make it hard to track
@@ -489,11 +490,12 @@
        is the one thing on the row that must survive intact: "M4" still
        reads as the M42, but "M" reads as a different route. */
     flex-shrink: 0;
-    /* A third of the row. A character count fitted every branch but "City
-       Terminal Zone" and took a fixed slice of a split column, where the
-       destination has least to spare; a share scales with the space the
-       card actually has. */
-    max-width: 33%;
+    /* A third of the row, but never below a short route number. A bare
+       share squeezes "Q101" to "Q10" in a bus column, and "Q10" is a real
+       and different route — the row then reads as the wrong bus. The floor
+       is 5ch: four characters plus padding, which covers every bus route
+       while long railroad branches stay on the share. */
+    max-width: max(33%, 5ch);
     /* A railroad, bus or ferry badge sits in the same column as a subway
        bullet and must read as the same kind of mark, at the same size.
        The framework's `.label` padding made it visibly taller, so the box
@@ -518,6 +520,11 @@
     display: flex;
     align-items: center;
     box-sizing: border-box;
+  }
+  /* `.trmnl .label` sets `max-width: 100%` at a higher specificity than a
+     bare `.row-badge`, so the floor above has to be repeated to win. */
+  .trmnl .row-badge {
+    max-width: max(33%, 5ch);
   }
 </style>
 
