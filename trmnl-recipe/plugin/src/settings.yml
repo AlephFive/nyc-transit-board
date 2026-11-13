@@ -179,12 +179,14 @@ custom_fields:
     field_type: author_bio
     name: About
     description: >-
-      Built by Shao-en Ma.
-      <a href="https://brian.ma/nyc-transit-board/">Full
-      guide</a> — filtering routes, picking a direction, splitting a
-      station across two cards.
-      <a href="https://github.com/AlephFive/nyc-transit-board">Source
-      and issues</a>.
+      Live Subway, Bus, LIRR, Metro North, and Ferry departures. Built by
+      Brian Shao-en Ma.
+      <a href="https://brian.ma/nyc-transit-board/">Full guide</a> —
+      includes instructions on board layout, route filtering, picking
+      directions, plus some tips/tricks.
+    github_url: https://github.com/AlephFive
+    learn_more_url: https://brian.ma/nyc-transit-board/
+    email_address: bm3027@columbia.edu
 
   - keyname: card1_visible
     field_type: boolean
