@@ -1254,6 +1254,38 @@ describe("row pitch follows the device", () => {
       }
     });
 
+    test(`${name} keeps the footer a sibling of .layout when empty`, () => {
+      // The framework makes room for the footer with
+      //
+      //   .view--full .layout:has(+.title_bar) { height: calc(… - bar) }
+      //
+      // an ADJACENT-SIBLING selector. Close one div too few in the
+      // empty-board branch and `.title_bar` becomes a CHILD of `.layout`
+      // rather than its next sibling: the rule stops matching, `.layout`
+      // keeps its full height, and the footer is pushed off the bottom.
+      // That shipped once — the footer rendered inline beside the message
+      // in the middle of the panel.
+      //
+      // Both branches must therefore leave the DOM at the same depth.
+      const liquid = source(name);
+      const at = liquid.indexOf("{% if card_total == 0 %}");
+      assert.ok(at > -1, `${name} has an empty-board branch`);
+      const elseAt = liquid.indexOf("\n{% else %}", at);
+      const endAt = liquid.indexOf("\n{% endif %}", elseAt);
+      assert.ok(elseAt > -1 && endAt > -1, `${name}'s branch is well formed`);
+
+      const depth = (s) =>
+        (s.match(/<div\b/g) ?? []).length - (s.match(/<\/div>/g) ?? []).length;
+
+      const empty = depth(liquid.slice(at, elseAt));
+      const filled = depth(liquid.slice(elseAt, endAt));
+      assert.equal(
+        empty,
+        filled,
+        `${name}: empty branch leaves ${empty} div(s) open, populated one ${filled}`
+      );
+    });
+
     test(`${name} assigns row_pitch before using it`, () => {
       const liquid = source(name);
       const assigned = liquid.search(/\{%\s*assign row_pitch\s*=/);

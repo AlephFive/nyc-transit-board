@@ -406,6 +406,9 @@ layout: null
   .pd-row .dest { flex: 1; color: var(--ink-soft); min-width: 0; overflow: hidden; }
   .pd-row .t { font-family: var(--mono); font-weight: 600; font-size: 13.5px; }
 
+  footer p { margin: 0 0 10px; }
+  footer p:last-child { margin-bottom: 0; }
+  .support { font-size: 15px; color: var(--ink-soft); }
   footer {
     grid-column: 1 / -1;
     border-top: 1px solid var(--rule);
@@ -1080,8 +1083,14 @@ layout: null
     </section>
 
     <footer>
-      Live data from the MTA's GTFS-realtime and SIRI feeds. Not affiliated with the
-      Metropolitan Transportation Authority.
+      <p class="support">
+        Free and open source. If it earns its place on your wall,
+        <a href="https://ko-fi.com/L7U72AJWFR" rel="noopener">buy me a coffee</a>.
+      </p>
+      <p>
+        Live data from the MTA's GTFS-realtime and SIRI feeds. Not affiliated with the
+        Metropolitan Transportation Authority.
+      </p>
     </footer>
   </main>
 </div>
