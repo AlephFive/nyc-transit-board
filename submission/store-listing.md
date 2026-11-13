@@ -7,7 +7,7 @@ plugin's own YAML.
 
 ## Name
 
-    NYC Transit Board
+    NYC Transit
 
 ## Tagline
 

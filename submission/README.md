@@ -1,6 +1,6 @@
 # TRMNL store submission
 
-Drafts for submitting **NYC Transit Board** to the TRMNL plugin store.
+Drafts for submitting **NYC Transit** to the TRMNL plugin store.
 Everything here is copy to send or read from — nothing in this folder is
 built or deployed.
 

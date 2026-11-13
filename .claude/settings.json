@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash /c/Users/spo2s/AppData/Local/Temp/claude/*/scratchpad/push.sh)",
+      "Bash(timeout * bash /c/Users/spo2s/AppData/Local/Temp/claude/*/scratchpad/push.sh)"
+    ]
+  }
+}

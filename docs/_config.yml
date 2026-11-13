@@ -4,7 +4,7 @@
 # (alephfive.github.io) has that CNAME: a project site is then served at
 # <domain>/<repo>/, which is why there is no CNAME file here. Verified —
 # brian.ma/blog and brian.ma/clock resolve the same way.
-title: NYC Transit Board
+title: NYC Transit
 description: A TRMNL recipe showing New York departures you can still catch
 theme: jekyll-theme-primer
 

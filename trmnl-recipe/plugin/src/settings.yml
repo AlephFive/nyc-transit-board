@@ -11,8 +11,8 @@
 #   https://trmnl.com/plugin_settings/524413/edit
 id: 524413
 
-name: NYC Transit Board
-description: NYC departures you can still catch
+name: NYC Transit
+description: Live Subway, Bus, Railway, Ferry
 
 recipe_overview: >-
   A live departure board for New York City transit, filtered by how long it

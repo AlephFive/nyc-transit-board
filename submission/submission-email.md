@@ -5,11 +5,11 @@ you attach stills. Everything else is final.
 
 ---
 
-**Subject:** Plugin submission — NYC Transit Board (524413)
+**Subject:** Plugin submission — NYC Transit (524413)
 
 Hi,
 
-I'd like to submit **NYC Transit Board** for the plugin store.
+I'd like to submit **NYC Transit** for the plugin store.
 
 - **Plugin id:** 524413
 - **Owner:** spo2.spire.club@gmail.com
