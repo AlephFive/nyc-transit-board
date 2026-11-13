@@ -219,21 +219,32 @@ export function boardFromJson(body: unknown): BoardSettings {
   const entries = Array.isArray(board.cards) ? board.cards : [];
 
   const cards: CardSettings[] = [];
+  /** Cards that parsed but were switched off, counted but not shown. */
+  let hiddenCount = 0;
 
   entries.slice(0, MAX_SLOTS).forEach((entry, index) => {
     const card = parseCard(index + 1, (entry ?? {}) as JsonCard);
     if (!card) return;
     // An untouched checkbox arrives absent or empty, which `asBoolean`
     // reads as visible. Reaching false here therefore took unticking the
-    // box, and unticking every box is a choice to honour rather than
-    // second-guess: the board falls through to the demo, whose own footer
-    // says the stations are an example.
+    // box by hand.
     if (asBoolean((entry as JsonCard).visible, true)) cards.push(card);
+    else hiddenCount += 1;
   });
 
+  // The demo board stands in for a plugin nobody has configured yet, and
+  // only for that. Switching every card off is a configured board that
+  // asks for an empty panel, so it gets one — showing six example
+  // stations instead would be the same wrong answer as showing the six
+  // the user just switched off.
+  //
+  // `isConfigured` is what separates them: a card was parsed, so settings
+  // exist, whatever their visibility.
+  const isConfigured = cards.length > 0 || hiddenCount > 0;
+
   return {
-    cards: cards.length > 0 ? cards : DEMO_CARDS,
-    isDemo: cards.length === 0,
+    cards: cards.length > 0 ? cards : isConfigured ? [] : DEMO_CARDS,
+    isDemo: !isConfigured,
     use24HourTime: asBoolean(board.use24Hour, true),
     urgentThresholdMinutes: asNumber(board.urgent, DEFAULT_URGENT_THRESHOLD),
     destinationScale: clampDestinationScale(

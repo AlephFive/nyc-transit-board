@@ -293,24 +293,36 @@ describe("a body that makes no sense still renders a board", () => {
     assert.deepEqual(board.cards[0]!.stopIds, ["117"]);
   });
 
-  test("hiding every card is honoured, and says so", () => {
-    // It used to restore them all, on the belief that TRMNL sent an
-    // explicit false for an untouched checkbox. It does not — an
-    // untouched box arrives absent or empty (see above), so the only way
-    // to reach false on every card is to untick all six by hand. The
-    // board that overrode that choice showed six cards the user had just
-    // switched off, with no way to turn them off.
+  test("hiding every card empties the board, and does not fall back to the demo", () => {
+    // Two wrong answers were tried here before this one. First the
+    // hidden cards were restored, so unticking all six showed all six.
+    // Then the board fell through to the demo, so unticking all six
+    // showed Times Square and Jamaica — six stations the user had never
+    // chosen, which is the same failure wearing a different hat.
     //
-    // The demo board stands in instead, and its footer reads "Example
-    // board · choose your stations in settings", which is the truth: no
-    // card is configured to show.
+    // The demo exists for a plugin nobody has configured. A board whose
+    // every card is switched off IS configured; it is asking for an
+    // empty panel. The layouts render a line saying so, because an
+    // e-ink screen holds its last image and a blank one reads as a
+    // crash.
     const board = boardFromJson({
       cards: [
         { station: "subway:117", visible: false },
         { station: "subway:725", visible: false },
       ],
     });
-    assert.equal(board.isDemo, true);
-    assert.ok(board.cards.length > 0, "a panel must render something");
+    assert.equal(board.isDemo, false, "a configured board is not the demo");
+    assert.deepEqual(board.cards, [], "no card asked to be shown");
+  });
+
+  test("a body with no cards at all is the demo", () => {
+    // The case the demo is actually for: nothing configured yet, so
+    // there is nothing to honour and an example board is the most
+    // useful thing a fresh panel can show.
+    for (const body of [{}, { cards: [] }, { cards: "nonsense" }]) {
+      const board = boardFromJson(body);
+      assert.equal(board.isDemo, true, JSON.stringify(body));
+      assert.ok(board.cards.length > 0, "the demo has cards");
+    }
   });
 });
