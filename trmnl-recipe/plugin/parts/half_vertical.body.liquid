@@ -580,35 +580,37 @@
     border-bottom: 4px solid transparent;
     /* The head's borders stick out of a zero-size box, so the shaft below
        sticks out the other side. The margins are what reserve room for
-       both: 6px of shaft on the tail side, 3px of air on the point side. */
+       both: 4px of shaft on the tail side, 3px of air on the point side. */
   }
   .row-arrow--in {
-    border-right: 5px solid currentColor;
-    margin-left: 6px;
+    border-right: 4px solid currentColor;
+    margin-left: 4px;
     margin-right: 3px;
   }
   .row-arrow--out {
-    border-left: 5px solid currentColor;
+    border-left: 4px solid currentColor;
     margin-left: 0;
-    margin-right: 9px;
+    margin-right: 7px;
   }
   /* The shaft. The head is borders on a zero-size box and cannot carry one,
      so it is drawn as a pseudo-element butted against the head's flat side.
-     2px tall rather than 1px: a single row of pixels on a 1-bit panel is
-     the first thing to disappear at a glance. */
+     The shaft is 4px against the head's 8px — half its height, not a
+     quarter. A thin shaft dithers away on the panel and leaves what reads
+     as a bare triangle. Every edge lands on a whole pixel: a half-pixel
+     offset is a grey row, and the panel has no grey. */
   .row-arrow::before {
     content: "";
     position: absolute;
-    top: -1px;
-    width: 6px;
-    height: 2px;
+    top: -2px;
+    width: 4px;
+    height: 4px;
     background: currentColor;
   }
   /* Each shaft starts at the head's flat side and runs away from the point.
      The offsets are measured from the zero-width box, so the point side is
      0 and the flat side is the border's own 5px. */
   .row-arrow--in::before { left: 0; }
-  .row-arrow--out::before { left: -6px; }
+  .row-arrow--out::before { left: -4px; }
 </style>
 
 {% comment %}
