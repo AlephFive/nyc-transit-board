@@ -569,8 +569,8 @@
   which carries it per device because the row styles are in `em` and a row
   is a different number of CSS pixels on each.
 {% endcomment %}
-{% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
-{% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_rows = panel_height | times: full_pct | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = panel_height | times: split_pct | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
 {% assign split_height = split_rows | times: row_pitch %}
 
@@ -665,6 +665,21 @@
 {% endcomment %}
 <div class="board-root"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
   <div class="layout">
+{% comment %}
+  Every card switched off, which `boardFromJson` sends as an empty `c`.
+
+  A blank panel is not an answer here: an e-ink screen holds its last
+  image through a failure, so a board that renders nothing is
+  indistinguishable from one that has crashed or lost its feed. It says
+  so instead, in the same `.row-empty` face the cards use for a direction
+  with no departures.
+{% endcomment %}
+{% assign card_total = c | size %}
+{% if card_total == 0 %}
+  <div class="flex flex--center h--full">
+    <span class="row-empty title title--small text--center">Every card is switched off · turn one on in settings</span>
+  </div>
+{% else %}
     <div class="grid grid--cols-{{ used_columns }} h--full">
 
       {% comment %}
@@ -984,6 +999,7 @@
     </div>
   </div>
 
+{% endif %}
   <div class="title_bar">
     {% comment %}
         The data's age, in New York time. A panel refreshes on an interval

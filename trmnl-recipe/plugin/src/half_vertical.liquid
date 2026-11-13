@@ -805,14 +805,41 @@
   Both are per-device, so they live together: a new device is one `when`
   with its two numbers.
 {% endcomment %}
+{% comment %}
+  `full_pct` and `split_pct` are the share of the panel a card's rows may
+  take: `full_pct` for a card alone in its column, `split_pct` for one of
+  two stacked in it.
+
+  They are per-device for the same reason `row_pitch` is. The share is
+  what is left after the chrome, and the chrome does not scale with the
+  panel: the title bar is 40px on both devices and a card heading is one
+  line of the device's own title face. So a bigger panel spends a smaller
+  fraction on chrome and can hand more of itself to rows — 72% of an OG
+  against 85% of an X.
+
+  Derived from the column rather than tuned by eye. The X's layout box is
+  780 - 2*10 gap - 40 title bar = 720px. A card spends 26px on its heading
+  (21px title face at 1.2 line-height) and 7px on the gap below it, so a
+  lone card fits floor((720 - 33) / 39) = 17 rows, and two stacked fit
+  floor(((720 - 7) / 2 - 33) / 39) = 8 each. 17 * 39 = 663, which is 85%
+  of 780; 8 * 39 = 312, which is 40%.
+
+  The OG's 72/34 are left as they are. The same arithmetic allows it more
+  than it takes, and its numbers are the ones verified on hardware —
+  raising them is a separate change needing its own panel to check.
+{% endcomment %}
 {% assign device_height = trmnl.device.height | default: 480 %}
 {% case device_height %}
   {% when 1404 %}
     {% assign panel_height = 780 %}
     {% assign row_pitch = 39 %}
+    {% assign full_pct = 85 %}
+    {% assign split_pct = 40 %}
   {% else %}
     {% assign panel_height = device_height %}
     {% assign row_pitch = 30 %}
+    {% assign full_pct = 72 %}
+    {% assign split_pct = 34 %}
 {% endcase %}
 {% comment %}
   Two budgets, chosen per card, exactly as full.liquid does at its own
@@ -822,8 +849,8 @@
   the second is left with only its heading, which is what the panel
   showed.
 {% endcomment %}
-{% assign full_rows = panel_height | times: 72 | divided_by: 100 | divided_by: row_pitch %}
-{% assign split_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_rows = panel_height | times: full_pct | divided_by: 100 | divided_by: row_pitch %}
+{% assign split_rows = panel_height | times: split_pct | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
 {% assign split_height = split_rows | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
@@ -836,6 +863,19 @@
     {% endcomment %}
     {% assign card_count = 0 %}
     {% for card in c %}{% if card_count < 2 %}{% assign card_count = card_count | plus: 1 %}{% endif %}{% endfor %}
+{% comment %}
+  Every card switched off, which `boardFromJson` sends as an empty `c`.
+
+  A blank cell is not an answer: an e-ink panel holds its last image
+  through a failure, so a mashup cell that renders nothing reads as a
+  crash rather than as a choice.
+{% endcomment %}
+{% assign card_total = c | size %}
+{% if card_total == 0 %}
+  <div class="flex flex--center h--full">
+    <span class="row-empty title title--small text--center">Every card is off</span>
+  </div>
+{% else %}
     <div class="col gap--small h--full{% if card_count < 2 %} col--start{% endif %}">
 {% comment %}
   Two cards, not six.
@@ -981,6 +1021,7 @@
       {% endfor %}
   </div>
   </div>
+{% endif %}
   <div class="title_bar">
     {% comment %}
         The data's age, in New York time. A panel refreshes on an interval

@@ -1175,6 +1175,85 @@ describe("row pitch follows the device", () => {
       );
     });
 
+
+    test(`${name} budgets the rows a column can actually hold`, () => {
+      const liquid = source(name);
+
+      // Derived from the column, not pinned, so a change to the chrome or
+      // the pitch is caught instead of silently invalidating the pair.
+      //
+      // The device hands the layout `screen-h`, less a `gap` either side
+      // and the title bar. A card then spends one line of the device's
+      // title face on its heading plus a `gap--small` beneath it, and the
+      // rest divides by the pitch. Two stacked cards split what is left
+      // after the gap between them.
+      const box = (screen, titleBar = 40, gap = 10) => screen - gap * 2 - titleBar;
+      const maxRows = (available, heading, pitch, gapSmall = 7) =>
+        Math.floor((available - heading - gapSmall) / pitch);
+
+      const DEVICES = {
+        OG: { screen: 480, pitch: 30, heading: Math.ceil(16 * 1.2) },
+        X: { screen: 780, pitch: 39, heading: Math.ceil(21 * 1.2) },
+      };
+
+      const declared = (pct, screen, pitch) =>
+        Math.floor(Math.floor((screen * pct) / 100) / pitch);
+
+      // Read each percentage out of its OWN branch of the `case`. A
+      // lazy `/else[\s\S]*?/` walks past the `else` into whichever
+      // assignment comes first in the file, which is the X's — so the
+      // OG was being checked against the X's numbers and this test
+      // failed on correct code.
+      const branch = (head) => {
+        const found = liquid.match(head);
+        assert.ok(found, `${name} has no matching case branch`);
+        // Skip past the opening tag before looking for the next one, or a
+        // branch that OPENS with `else` ends at its own first character.
+        const rest = liquid.slice(found.index + found[0].length);
+        const end = rest.search(/\{%\s*(when|else|endcase)\s*/);
+        return end >= 0 ? rest.slice(0, end) : rest;
+      };
+
+      const pctsIn = (text) => ({
+        full: Number(text.match(/assign full_pct = (\d+)/)?.[1]),
+        split: Number(text.match(/assign split_pct = (\d+)/)?.[1]),
+      });
+
+      const pcts = {
+        X: pctsIn(branch(/\{%\s*when 1404\s*%\}/)),
+        OG: pctsIn(branch(/\{%\s*else\s*%\}\s*\{%\s*assign panel_height = device_height/)),
+      };
+
+      for (const [device, { screen, pitch, heading }] of Object.entries(DEVICES)) {
+        const available = box(screen);
+        const fullCap = maxRows(available, heading, pitch);
+        const splitCap = maxRows((available - 7) / 2, heading, pitch);
+
+        for (const [shape, cap] of [
+          ["full", fullCap],
+          ["split", splitCap],
+        ]) {
+          const pct = pcts[device][shape];
+          assert.ok(
+            Number.isFinite(pct),
+            `${name} should declare ${shape}_pct for the ${device}`
+          );
+
+          const rows = declared(pct, screen, pitch);
+          assert.ok(
+            rows <= cap,
+            `${name} budgets ${rows} ${shape} rows on the ${device}, but its ` +
+              `column holds ${cap}: ${rows * pitch}px of rows plus ${heading}px ` +
+              `of heading overruns the ${available}px the device gives it`
+          );
+          assert.ok(
+            rows >= 1,
+            `${name} budgets no ${shape} rows at all on the ${device}`
+          );
+        }
+      }
+    });
+
     test(`${name} assigns row_pitch before using it`, () => {
       const liquid = source(name);
       const assigned = liquid.search(/\{%\s*assign row_pitch\s*=/);

@@ -636,11 +636,24 @@
   height of the full board — so it holds one card. half_vertical is a
   full-height column and stacks two, which is why it needs a split budget
   and `grow basis--0`; here the single card simply takes the cell, and
-  34% of the device height is what that cell is.
+  `split_pct` of the device height is what that cell is.
 {% endcomment %}
-{% assign full_rows = panel_height | times: 34 | divided_by: 100 | divided_by: row_pitch %}
+{% assign full_rows = panel_height | times: split_pct | divided_by: 100 | divided_by: row_pitch %}
 {% assign full_height = full_rows | times: row_pitch %}
 <div class="layout"{% if ds %} style="--dest-scale: {{ ds }}"{% endif %}>
+{% comment %}
+  Every card switched off, which `boardFromJson` sends as an empty `c`.
+
+  A blank cell is not an answer: an e-ink panel holds its last image
+  through a failure, so a mashup cell that renders nothing reads as a
+  crash rather than as a choice.
+{% endcomment %}
+{% assign card_total = c | size %}
+{% if card_total == 0 %}
+  <div class="flex flex--center h--full">
+    <span class="row-empty title title--small text--center">Every card is off</span>
+  </div>
+{% else %}
             <div class="col gap--small h--full col--start">
 {% comment %}
   One card.
@@ -781,6 +794,7 @@
       {% endfor %}
   </div>
   </div>
+{% endif %}
   <div class="title_bar">
     {% comment %}
         The data's age, in New York time. A panel refreshes on an interval
