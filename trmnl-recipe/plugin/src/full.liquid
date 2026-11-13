@@ -574,12 +574,12 @@
        is the one thing on the row that must survive intact: "M4" still
        reads as the M42, but "M" reads as a different route. */
     flex-shrink: 0;
-    /* A third of the row, but never below a short route number. A bare
+    /* Up to 45% of the row, but never below a short route number. A bare
        share squeezes "Q101" to "Q10" in a bus column, and "Q10" is a real
        and different route — the row then reads as the wrong bus. The floor
        is 5ch: four characters plus padding, which covers every bus route
        while long railroad branches stay on the share. */
-    max-width: max(33%, 5ch);
+    max-width: max(45%, 5ch);
     /* A railroad, bus or ferry badge sits in the same column as a subway
        bullet and must read as the same kind of mark, at the same size.
        The framework's `.label` padding made it visibly taller, so the box
@@ -608,7 +608,7 @@
   /* `.trmnl .label` sets `max-width: 100%` at a higher specificity than a
      bare `.row-badge`, so the floor above has to be repeated to win. */
   .trmnl .row-badge {
-    max-width: max(33%, 5ch);
+    max-width: max(45%, 5ch);
   }
 </style>
 
